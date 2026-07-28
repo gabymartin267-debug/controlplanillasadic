@@ -7,6 +7,7 @@
     <!-- Configuración PWA para Android e iOS -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#00adb5">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Planilla Servicios">
@@ -251,7 +252,7 @@
         <div class="watermark">Powered by GabyMartin</div>
     </div>
 
-    <!-- SCRIPTS DE FIREBASE Y LÓGICA -->
+    <!-- SCRIPT DE FIREBASE EXPUESTO GLOBALMENTE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
@@ -270,8 +271,9 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Exponemos todo de forma global para que el script tradicional no dé errores
         window.firebaseAuth = {
-            auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, doc, setDoc, getDoc, updateDoc, updateProfile, onSnapshot, collection
+            auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, doc, setDoc, getDoc, updateDoc, updateProfile, onSnapshot, collection, onAuthStateChanged
         };
     </script>
 
@@ -299,7 +301,6 @@
                 
                 await updateProfile(user, { displayName: nombre });
 
-                // Asignar rol de admin automáticamente si coincide con tu correo
                 const isAdmin = (email.toLowerCase() === 'gabymartin267@gmail.com');
 
                 await setDoc(doc(db, "users", user.uid), {
@@ -329,7 +330,7 @@
             try {
                 await signInWithEmailAndPassword(auth, email, password);
             } catch (error) {
-                alert("Error al iniciar sesión: Verifique sus datos.");
+                alert("Error al iniciar sesión: Verifique sus datos o contraseña.");
             }
         }
 
@@ -340,58 +341,60 @@
 
         // Observador del Estado de Sesión
         document.addEventListener("DOMContentLoaded", () => {
-            setTimeout(() => {
-                const { auth, db, doc, getDoc, onSnapshot, collection, updateDoc } = window.firebaseAuth;
-                
-                onAuthStateChanged(auth, async (user) => {
-                    const authContainer = document.getElementById('auth-container');
-                    const pendingContainer = document.getElementById('pending-container');
-                    const adminPanel = document.getElementById('admin-panel');
-                    const mainApp = document.getElementById('main-app');
+            const checkFirebaseInterval = setInterval(() => {
+                if (window.firebaseAuth) {
+                    clearInterval(checkFirebaseInterval);
+                    const { auth, db, doc, getDoc, onSnapshot, collection, updateDoc, onAuthStateChanged } = window.firebaseAuth;
+                    
+                    onAuthStateChanged(auth, async (user) => {
+                        const authContainer = document.getElementById('auth-container');
+                        const pendingContainer = document.getElementById('pending-container');
+                        const adminPanel = document.getElementById('admin-panel');
+                        const mainApp = document.getElementById('main-app');
 
-                    if (user) {
-                        const userDocRef = doc(db, "users", user.uid);
-                        const userSnap = await getDoc(userDocRef);
+                        if (user) {
+                            const userDocRef = doc(db, "users", user.uid);
+                            const userSnap = await getDoc(userDocRef);
 
-                        if (userSnap.exists()) {
-                            const userData = userSnap.data();
-                            
-                            authContainer.style.display = 'none';
-
-                            // Forzar rol de admin si es tu correo por seguridad estructural
-                            if (userData.email.toLowerCase() === 'gabymartin267@gmail.com' && userData.role !== 'admin') {
-                                await updateDoc(userDocRef, { role: 'admin', status: 'approved' });
-                                userData.role = 'admin';
-                                userData.status = 'approved';
-                            }
-
-                            if (userData.role === 'admin') {
-                                adminPanel.style.display = 'block';
-                                mainApp.style.display = 'block';
-                                document.getElementById('user-display-info').innerText = `Admin: ${userData.nombreCompleto}`;
-                                escucharSolicitudesPendientes();
-                            } else if (userData.status === 'approved') {
-                                pendingContainer.style.display = 'none';
-                                adminPanel.style.display = 'none';
-                                mainApp.style.display = 'block';
-                                document.getElementById('user-display-info').innerText = `Usuario: ${userData.nombreCompleto}`;
+                            if (userSnap.exists()) {
+                                const userData = userSnap.data();
                                 
-                                document.getElementById('in-nombre').value = userData.nombreCompleto;
-                                document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + userData.nombreCompleto;
-                            } else {
-                                pendingContainer.style.display = 'block';
-                                adminPanel.style.display = 'none';
-                                mainApp.style.display = 'none';
+                                authContainer.style.display = 'none';
+
+                                if (userData.email.toLowerCase() === 'gabymartin267@gmail.com' && userData.role !== 'admin') {
+                                    await updateDoc(userDocRef, { role: 'admin', status: 'approved' });
+                                    userData.role = 'admin';
+                                    userData.status = 'approved';
+                                }
+
+                                if (userData.role === 'admin') {
+                                    adminPanel.style.display = 'block';
+                                    mainApp.style.display = 'block';
+                                    document.getElementById('user-display-info').innerText = `Admin: ${userData.nombreCompleto || 'GabyMartin'}`;
+                                    escucharSolicitudesPendientes();
+                                } else if (userData.status === 'approved') {
+                                    pendingContainer.style.display = 'none';
+                                    adminPanel.style.display = 'none';
+                                    mainApp.style.display = 'block';
+                                    document.getElementById('user-display-info').innerText = `Usuario: ${userData.nombreCompleto}`;
+                                    
+                                    document.getElementById('in-nombre').value = userData.nombreCompleto;
+                                    document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + userData.nombreCompleto;
+                                } else {
+                                    pendingContainer.style.display = 'block';
+                                    adminPanel.style.display = 'none';
+                                    mainApp.style.display = 'none';
+                                }
                             }
+                        } else {
+                            authContainer.style.display = 'block';
+                            pendingContainer.style.display = 'none';
+                            adminPanel.style.display = 'none';
+                            mainApp.style.display = 'none';
                         }
-                    } else {
-                        authContainer.style.display = 'block';
-                        pendingContainer.style.display = 'none';
-                        adminPanel.style.display = 'none';
-                        mainApp.style.display = 'none';
-                    }
-                });
-            }, 800);
+                    });
+                }
+            }, 200);
         });
 
         function escucharSolicitudesPendientes() {
@@ -540,7 +543,6 @@
 
         document.getElementById('in-mes').oninput = e => document.getElementById('p-mes').innerText = "MES: " + e.target.value;
         document.getElementById('in-grado').oninput = e => document.getElementById('p-grado').innerText = "GRADO: " + e.target.value;
-        // Solo sobrescribe si no es un usuario común logueado con nombre ya establecido
         document.getElementById('in-nombre').oninput = e => document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + e.target.value;
     </script>
 </body>
