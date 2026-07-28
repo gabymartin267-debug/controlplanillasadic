@@ -135,7 +135,7 @@
 
         @media print {
             body { background: white; color: black; }
-            .container, button, #auth-container, #pending-container, #admin-panel { display: none !important; }
+            .container, button, #auth-container, #pending-container, #admin-panel, #admin-users-view { display: none !important; }
             #printable-area { 
                 display: block !important; 
                 width: 100%; 
@@ -193,20 +193,31 @@
         </div>
     </div>
 
-    <!-- 2. PANTALLA DE ESPERA (CUANDO NO ESTÁ AUTORIZADO) -->
+    <!-- 2. PANTALLA DE ESPERA -->
     <div id="pending-container" class="container" style="display:none; max-width: 400px; text-align: center;">
         <h2>Cuenta Pendiente de Aprobación</h2>
         <p>Tu registro fue exitoso. El administrador (GabyMartin) debe autorizar tu acceso para utilizar la aplicación.</p>
         <button onclick="cerrarSesion()" style="background:#d9534f;">Cerrar Sesión</button>
     </div>
 
-    <!-- 3. PANEL DE ADMINISTRADOR -->
+    <!-- 3. PANEL DE ADMINISTRADOR (SOLICITUDES Y GESTIÓN) -->
     <div id="admin-panel" class="container" style="display:none; border: 2px solid var(--accent-color);">
         <h3>Panel de Administración - Solicitudes Pendientes</h3>
         <div id="admin-requests-list">
             <p>Cargando solicitudes...</p>
         </div>
         <button onclick="cerrarSesion()" style="background:#d9534f; margin-top:15px; width:auto; padding: 10px 20px;">Cerrar Sesión Admin</button>
+    </div>
+
+    <!-- 3.1. PANEL DE ADMINISTRADOR: PLANILLAS DE TODOS LOS USUARIOS -->
+    <div id="admin-users-view" class="container" style="display:none; border: 2px solid #ff9800;">
+        <h3>Gestión de Planillas de Personal (Vista Admin)</h3>
+        <p style="font-size: 0.9em; color: #aaa;">Selecciona un usuario para revisar, modificar, guardar o generar su PDF descargable:</p>
+        <div id="admin-user-selector-container" style="margin-bottom: 20px;">
+            <select id="admin-select-user" onchange="adminSelectedUserChanged()" style="padding: 10px; background: #2a2a2a; border: 1px solid var(--border-color); color: white; border-radius: 4px; width: 100%;">
+                <option value="">-- Seleccionar Usuario --</option>
+            </select>
+        </div>
     </div>
 
     <!-- 4. APLICACIÓN PRINCIPAL (PLANILLA DE SERVICIOS) -->
@@ -229,7 +240,10 @@
             <span id="total-final">0.0</span>
         </div>
 
-        <button onclick="window.print()">Imprimir Planilla</button>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="guardarPlanilla()" style="background: #28a745; flex: 1;">Guardar Planilla</button>
+            <button onclick="imprimirPlanillaActual()" style="background: var(--accent-color); flex: 1;">Imprimir / Generar PDF</button>
+        </div>
     </div>
 
     <!-- ÁREA DE IMPRESIÓN -->
@@ -256,7 +270,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBH0YCZAjC4uvvlP0UJB9rbujOhgTLOXNw",
@@ -271,14 +285,15 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Exponemos todo de forma global para que el script tradicional no dé errores
         window.firebaseAuth = {
-            auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, doc, setDoc, getDoc, updateDoc, updateProfile, onSnapshot, collection, onAuthStateChanged
+            auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, doc, setDoc, getDoc, updateDoc, updateProfile, onSnapshot, collection, getDocs
         };
     </script>
 
     <script>
-        // Interfaz de Autenticación
+        let currentUserData = null;
+        let activeTargetUid = null; // Almacena el UID de la planilla que se está editando/visualizando actualmente
+
         window.toggleAuthMode = function(isRegister) {
             document.getElementById('login-form').style.display = isRegister ? 'none' : 'block';
             document.getElementById('register-form').style.display = isRegister ? 'block' : 'none';
@@ -350,6 +365,7 @@
                         const authContainer = document.getElementById('auth-container');
                         const pendingContainer = document.getElementById('pending-container');
                         const adminPanel = document.getElementById('admin-panel');
+                        const adminUsersView = document.getElementById('admin-users-view');
                         const mainApp = document.getElementById('main-app');
 
                         if (user) {
@@ -357,32 +373,41 @@
                             const userSnap = await getDoc(userDocRef);
 
                             if (userSnap.exists()) {
-                                const userData = userSnap.data();
-                                
+                                currentUserData = userSnap.data();
                                 authContainer.style.display = 'none';
 
-                                if (userData.email.toLowerCase() === 'gabymartin267@gmail.com' && userData.role !== 'admin') {
+                                if (currentUserData.email.toLowerCase() === 'gabymartin267@gmail.com' && currentUserData.role !== 'admin') {
                                     await updateDoc(userDocRef, { role: 'admin', status: 'approved' });
-                                    userData.role = 'admin';
-                                    userData.status = 'approved';
+                                    currentUserData.role = 'admin';
+                                    currentUserData.status = 'approved';
                                 }
 
-                                if (userData.role === 'admin') {
+                                if (currentUserData.role === 'admin') {
                                     adminPanel.style.display = 'block';
+                                    adminUsersView.style.display = 'block';
                                     mainApp.style.display = 'block';
-                                    document.getElementById('user-display-info').innerText = `Admin: ${userData.nombreCompleto || 'GabyMartin'}`;
+                                    document.getElementById('user-display-info').innerText = `Admin: ${currentUserData.nombreCompleto || 'GabyMartin'}`;
+                                    
+                                    activeTargetUid = user.uid; // Por defecto el admin edita la suya propia o puede cambiar arriba
+                                    cargarDatosPlanilla(user.uid);
                                     escucharSolicitudesPendientes();
-                                } else if (userData.status === 'approved') {
+                                    poblarSelectAdminUsers();
+                                } else if (currentUserData.status === 'approved') {
                                     pendingContainer.style.display = 'none';
                                     adminPanel.style.display = 'none';
+                                    adminUsersView.style.display = 'none';
                                     mainApp.style.display = 'block';
-                                    document.getElementById('user-display-info').innerText = `Usuario: ${userData.nombreCompleto}`;
+                                    document.getElementById('user-display-info').innerText = `Usuario: ${currentUserData.nombreCompleto}`;
                                     
-                                    document.getElementById('in-nombre').value = userData.nombreCompleto;
-                                    document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + userData.nombreCompleto;
+                                    activeTargetUid = user.uid;
+                                    document.getElementById('in-nombre').value = currentUserData.nombreCompleto;
+                                    document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + currentUserData.nombreCompleto;
+                                    
+                                    cargarDatosPlanilla(user.uid);
                                 } else {
                                     pendingContainer.style.display = 'block';
                                     adminPanel.style.display = 'none';
+                                    adminUsersView.style.display = 'none';
                                     mainApp.style.display = 'none';
                                 }
                             }
@@ -390,6 +415,7 @@
                             authContainer.style.display = 'block';
                             pendingContainer.style.display = 'none';
                             adminPanel.style.display = 'none';
+                            adminUsersView.style.display = 'none';
                             mainApp.style.display = 'none';
                         }
                     });
@@ -398,7 +424,7 @@
         });
 
         function escucharSolicitudesPendientes() {
-            const { db, collection, onSnapshot, doc, updateDoc } = window.firebaseAuth;
+            const { db, collection, onSnapshot } = window.firebaseAuth;
             const listContainer = document.getElementById('admin-requests-list');
 
             onSnapshot(collection(db, "users"), (snapshot) => {
@@ -425,12 +451,37 @@
             try {
                 await updateDoc(doc(db, "users", uid), { status: "approved" });
                 alert("Usuario autorizado correctamente.");
+                poblarSelectAdminUsers();
             } catch (error) {
                 alert("Error al autorizar: " + error.message);
             }
         }
 
-        // --- LÓGICA DE LA PLANILLA DE SERVICIOS ---
+        async function poblarSelectAdminUsers() {
+            const { db, collection, getDocs } = window.firebaseAuth;
+            const select = document.getElementById('admin-select-user');
+            const snapshot = await getDocs(collection(db, "users"));
+            
+            let options = `<option value="">-- Selecciona una planilla de usuario --</option>`;
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                if(data.status === 'approved') {
+                    options += `<option value="${data.uid}">${data.nombreCompleto} (${data.email})</option>`;
+                }
+            });
+            select.innerHTML = options;
+        }
+
+        window.adminSelectedUserChanged = async function() {
+            const select = document.getElementById('admin-select-user');
+            const selectedUid = select.value;
+            if(!selectedUid) return;
+
+            activeTargetUid = selectedUid;
+            await cargarDatosPlanilla(selectedUid);
+        }
+
+        // --- LÓGICA DE LA PLANILLA Y GUARDADO EN FIRESTORE ---
         const grid = document.getElementById('main-grid');
         const optionsMap = {
             "G": "Guardia",
@@ -524,6 +575,104 @@
 
             document.getElementById('total-final').innerText = totalGlobal.toFixed(1);
             document.getElementById('p-total').innerText = totalGlobal.toFixed(1);
+        }
+
+        window.guardarPlanilla = async function() {
+            if(!activeTargetUid) return;
+            const { db, doc, setDoc } = window.firebaseAuth;
+
+            const mes = document.getElementById('in-mes').value;
+            const grado = document.getElementById('in-grado').value;
+            const nombre = document.getElementById('in-nombre').value;
+
+            let diasData = {};
+            for(let i = 1; i <= 31; i++) {
+                const checked = Array.from(document.querySelectorAll(`.chk-day-${i}:checked`)).map(cb => cb.value);
+                const start = document.getElementById(`start-${i}`).value;
+                const end = document.getElementById(`end-${i}`).value;
+                
+                diasData[i] = { checked, start, end };
+            }
+
+            try {
+                await setDoc(doc(db, "planillas", activeTargetUid), {
+                    uid: activeTargetUid,
+                    mes,
+                    grado,
+                    nombre,
+                    dias: diasData,
+                    ultimaActualizacion: new Date()
+                }, { merge: true });
+
+                alert("¡Planilla guardada exitosamente en la base de datos!");
+            } catch (error) {
+                alert("Error al guardar la planilla: " + error.message);
+            }
+        }
+
+        async function cargarDatosPlanilla(targetUid) {
+            const { db, doc, getDoc } = window.firebaseAuth;
+            
+            // Limpiar formulario primero
+            document.getElementById('in-mes').value = '';
+            document.getElementById('in-grado').value = '';
+            for(let i = 1; i <= 31; i++) {
+                document.querySelectorAll(`.chk-day-${i}`).forEach(cb => cb.checked = false);
+                document.getElementById(`start-${i}`).value = '';
+                document.getElementById(`end-${i}`).value = '';
+                document.getElementById(`time-box-${i}`).style.display = 'none';
+            }
+
+            // Cargar datos de usuario para el nombre base si no hay planilla creada aún
+            const userSnap = await getDoc(doc(db, "users", targetUid));
+            if(userSnap.exists()) {
+                const uData = userSnap.data();
+                document.getElementById('in-nombre').value = uData.nombreCompleto || '';
+                document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + (uData.nombreCompleto || '');
+            }
+
+            // Cargar planilla si existe en Firestore
+            const planSnap = await getDoc(doc(db, "planillas", targetUid));
+            if(planSnap.exists()) {
+                const pData = planSnap.data();
+                document.getElementById('in-mes').value = pData.mes || '';
+                document.getElementById('p-mes').innerText = "MES: " + (pData.mes || '');
+                
+                document.getElementById('in-grado').value = pData.grado || '';
+                document.getElementById('p-grado').innerText = "GRADO: " + (pData.grado || '');
+
+                if(pData.nombre) {
+                    document.getElementById('in-nombre').value = pData.nombre;
+                    document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + pData.nombre;
+                }
+
+                if(pData.dias) {
+                    for(let i = 1; i <= 31; i++) {
+                        const dayInfo = pData.dias[i];
+                        if(dayInfo) {
+                            if(dayInfo.checked) {
+                                dayInfo.checked.forEach(val => {
+                                    const cb = document.querySelector(`.chk-day-${i}[value="${val}"]`);
+                                    if(cb) cb.checked = true;
+                                });
+                            }
+                            if(dayInfo.start) document.getElementById(`start-${i}`).value = dayInfo.start;
+                            if(dayInfo.end) document.getElementById(`end-${i}`).value = dayInfo.end;
+                            
+                            window.handleOptionChange(i);
+                        }
+                    }
+                }
+            }
+            calculateHours();
+        }
+
+        window.imprimirPlanillaActual = function() {
+            // Asegurar que los textos impresos coincidan antes de abrir el diálogo de impresión
+            document.getElementById('p-mes').innerText = "MES: " + document.getElementById('in-mes').value;
+            document.getElementById('p-grado').innerText = "GRADO: " + document.getElementById('in-grado').value;
+            document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + document.getElementById('in-nombre').value;
+            window.print();
         }
 
         const pTable = document.getElementById('p-table');
