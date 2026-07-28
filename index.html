@@ -286,13 +286,13 @@
         const db = getFirestore(app);
 
         window.firebaseAuth = {
-            auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, doc, setDoc, getDoc, updateDoc, updateProfile, onSnapshot, collection, getDocs
+            auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, doc, setDoc, getDoc, updateDoc, updateProfile, onSnapshot, collection, getDocs, onAuthStateChanged
         };
     </script>
 
     <script>
         let currentUserData = null;
-        let activeTargetUid = null; // Almacena el UID de la planilla que se está editando/visualizando actualmente
+        let activeTargetUid = null;
 
         window.toggleAuthMode = function(isRegister) {
             document.getElementById('login-form').style.display = isRegister ? 'none' : 'block';
@@ -359,7 +359,7 @@
             const checkFirebaseInterval = setInterval(() => {
                 if (window.firebaseAuth) {
                     clearInterval(checkFirebaseInterval);
-                    const { auth, db, doc, getDoc, onSnapshot, collection, updateDoc, onAuthStateChanged } = window.firebaseAuth;
+                    const { auth, db, doc, getDoc, updateDoc, onAuthStateChanged } = window.firebaseAuth;
                     
                     onAuthStateChanged(auth, async (user) => {
                         const authContainer = document.getElementById('auth-container');
@@ -388,7 +388,7 @@
                                     mainApp.style.display = 'block';
                                     document.getElementById('user-display-info').innerText = `Admin: ${currentUserData.nombreCompleto || 'GabyMartin'}`;
                                     
-                                    activeTargetUid = user.uid; // Por defecto el admin edita la suya propia o puede cambiar arriba
+                                    activeTargetUid = user.uid;
                                     cargarDatosPlanilla(user.uid);
                                     escucharSolicitudesPendientes();
                                     poblarSelectAdminUsers();
@@ -429,11 +429,9 @@
 
             onSnapshot(collection(db, "users"), (snapshot) => {
                 let html = "";
-                let count = 0;
                 snapshot.forEach((docSnap) => {
                     const data = docSnap.data();
                     if (data.status === 'pending') {
-                        count++;
                         html += `
                             <div style="background:#2a2a2a; padding:10px; margin-bottom:8px; border-radius:4px; display:flex; justify-content:space-between; align-items:center;">
                                 <span><b>${data.nombreCompleto}</b> (${data.email})</span>
@@ -623,7 +621,7 @@
                 document.getElementById(`time-box-${i}`).style.display = 'none';
             }
 
-            // Cargar datos de usuario para el nombre base si no hay planilla creada aún
+            // Cargar datos de usuario para el nombre base
             const userSnap = await getDoc(doc(db, "users", targetUid));
             if(userSnap.exists()) {
                 const uData = userSnap.data();
@@ -631,7 +629,7 @@
                 document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + (uData.nombreCompleto || '');
             }
 
-            // Cargar planilla si existe en Firestore
+            // Cargar planilla de Firestore
             const planSnap = await getDoc(doc(db, "planillas", targetUid));
             if(planSnap.exists()) {
                 const pData = planSnap.data();
@@ -668,7 +666,6 @@
         }
 
         window.imprimirPlanillaActual = function() {
-            // Asegurar que los textos impresos coincidan antes de abrir el diálogo de impresión
             document.getElementById('p-mes').innerText = "MES: " + document.getElementById('in-mes').value;
             document.getElementById('p-grado').innerText = "GRADO: " + document.getElementById('in-grado').value;
             document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + document.getElementById('in-nombre').value;
