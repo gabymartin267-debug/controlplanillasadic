@@ -341,7 +341,7 @@
     <script>
         let currentUserData = null;
         let activeTargetUid = null;
-        let activeSelectedMonth = "";
+        let activeUserEmail = "";
 
         window.toggleAuthMode = function(isRegister) {
             document.getElementById('login-form').style.display = isRegister ? 'none' : 'block';
@@ -350,14 +350,16 @@
 
         window.handleRegister = async function() {
             const nombre = document.getElementById('reg-nombre').value;
-            const email = document.getElementById('reg-email').value;
+            const emailRaw = document.getElementById('reg-email').value;
             const password = document.getElementById('reg-password').value;
             const { auth, db, createUserWithEmailAndPassword, setDoc, doc, updateProfile } = window.firebaseAuth;
 
-            if(!nombre || !email || !password) {
+            if(!nombre || !emailRaw || !password) {
                 alert("Por favor completa todos los campos.");
                 return;
             }
+
+            const email = emailRaw.toLowerCase().trim();
 
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -365,7 +367,7 @@
                 
                 await updateProfile(user, { displayName: nombre });
 
-                const isAdmin = (email.toLowerCase() === 'gabymartin267@gmail.com');
+                const isAdmin = (email === 'gabymartin267@gmail.com');
 
                 await setDoc(doc(db, "users", user.uid), {
                     uid: user.uid,
@@ -387,7 +389,7 @@
         }
 
         window.handleLogin = async function() {
-            const email = document.getElementById('login-email').value;
+            const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value;
             const { auth, signInWithEmailAndPassword } = window.firebaseAuth;
 
@@ -425,7 +427,9 @@
                                 currentUserData = userSnap.data();
                                 authContainer.style.display = 'none';
 
-                                if (currentUserData.email.toLowerCase() === 'gabymartin267@gmail.com' && currentUserData.role !== 'admin') {
+                                const userEmail = currentUserData.email ? currentUserData.email.toLowerCase() : '';
+
+                                if (userEmail === 'gabymartin267@gmail.com' && currentUserData.role !== 'admin') {
                                     await updateDoc(userDocRef, { role: 'admin', status: 'approved' });
                                     currentUserData.role = 'admin';
                                     currentUserData.status = 'approved';
@@ -436,9 +440,10 @@
                                     adminUsersView.style.display = 'block';
                                     mainApp.style.display = 'block';
                                     document.getElementById('user-display-info').innerText = `Admin: ${currentUserData.nombreCompleto || 'GabyMartin'}`;
-                                    document.getElementById('user-months-section').style.display = 'none'; // Admin usa el panel superior
+                                    document.getElementById('user-months-section').style.display = 'none';
                                     
                                     activeTargetUid = user.uid;
+                                    activeUserEmail = userEmail;
                                     escucharSolicitudesPendientes();
                                     cargarUsuariosAdminTabs();
                                 } else if (currentUserData.status === 'approved') {
@@ -450,10 +455,11 @@
                                     document.getElementById('user-display-info').innerText = `Usuario: ${currentUserData.nombreCompleto}`;
                                     
                                     activeTargetUid = user.uid;
+                                    activeUserEmail = userEmail;
                                     document.getElementById('in-nombre').value = currentUserData.nombreCompleto;
                                     document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + currentUserData.nombreCompleto;
                                     
-                                    cargarSolapasMesesUsuario(user.uid);
+                                    cargarSolapasMesesUsuario(userEmail);
                                 } else {
                                     pendingContainer.style.display = 'block';
                                     adminPanel.style.display = 'none';
@@ -479,9 +485,13 @@
 
             onSnapshot(collection(db, "users"), (snapshot) => {
                 let html = "";
+                const emailsVistos = new Set();
+
                 snapshot.forEach((docSnap) => {
                     const data = docSnap.data();
-                    if (data.status === 'pending') {
+                    const mailNorm = data.email ? data.email.toLowerCase() : '';
+                    if (data.status === 'pending' && !emailsVistos.has(mailNorm)) {
+                        emailsVistos.add(mailNorm);
                         html += `
                             <div style="background:#2a2a2a; padding:10px; margin-bottom:8px; border-radius:4px; display:flex; justify-content:space-between; align-items:center;">
                                 <span><b>${data.nombreCompleto}</b> (${data.email})</span>
@@ -505,36 +515,44 @@
             }
         }
 
-        // --- GESTIÓN DE SOLAPAS PARA EL ADMINISTRADOR ---
+        // --- GESTIÓN DE SOLAPAS PARA EL ADMINISTRADOR (DESDUPLICADO POR EMAIL) ---
         async function cargarUsuariosAdminTabs() {
             const { db, collection, getDocs } = window.firebaseAuth;
             const container = document.getElementById('admin-users-tabs');
             const snapshot = await getDocs(collection(db, "users"));
 
             let html = "";
+            const emailsAgregados = new Set();
+
             snapshot.forEach((docSnap) => {
                 const data = docSnap.data();
-                if(data.status === 'approved') {
-                    html += `<button class="tab-btn admin-user-tab" id="btn-user-${data.uid}" onclick="seleccionarUsuarioAdmin('${data.uid}')">${data.nombreCompleto}</button>`;
+                const mailNorm = data.email ? data.email.toLowerCase() : '';
+
+                if(data.status === 'approved' && !emailsAgregados.has(mailNorm)) {
+                    emailsAgregados.add(mailNorm);
+                    // Usamos un identificador limpio basado en el correo para evitar duplicar solapas
+                    const safeEmailId = mailNorm.replace(/[^a-zA-Z0-9]/g, '_');
+                    html += `<button class="tab-btn admin-user-tab" id="btn-user-${safeEmailId}" onclick="seleccionarUsuarioAdmin('${data.uid}', '${mailNorm}', '${safeEmailId}')">${data.nombreCompleto}</button>`;
                 }
             });
             container.innerHTML = html || "<span style='color:#777;'>No hay usuarios autorizados.</span>";
         }
 
-        window.seleccionarUsuarioAdmin = async function(uid) {
+        window.seleccionarUsuarioAdmin = async function(uid, email, safeEmailId) {
             document.querySelectorAll('.admin-user-tab').forEach(btn => btn.classList.remove('active'));
-            const activeBtn = document.getElementById(`btn-user-${uid}`);
+            const activeBtn = document.getElementById(`btn-user-${safeEmailId}`);
             if(activeBtn) activeBtn.classList.add('active');
 
             activeTargetUid = uid;
-            cargarSolapasMesesAdmin(uid);
+            activeUserEmail = email;
+            cargarSolapasMesesAdmin(email);
         }
 
-        async function cargarSolapasMesesAdmin(uid) {
+        async function cargarSolapasMesesAdmin(email) {
             const { db, collection, query, where, getDocs } = window.firebaseAuth;
             const container = document.getElementById('admin-months-tabs');
 
-            const q = query(collection(db, "planillas"), where("uid", "==", uid));
+            const q = query(collection(db, "planillas"), where("userEmail", "==", email));
             const snapshot = await getDocs(q);
 
             if(snapshot.empty) {
@@ -547,22 +565,22 @@
             snapshot.forEach((docSnap) => {
                 const pData = docSnap.data();
                 const mesNombre = pData.mes || "Sin Mes";
-                html += `<button class="tab-btn admin-month-tab" id="btn-admin-m-${pData.mesKey}" onclick="cargarMesEspecifico('${uid}', '${pData.mesKey}', 'admin')">${mesNombre}</button>`;
+                html += `<button class="tab-btn admin-month-tab" id="btn-admin-m-${pData.mesKey}" onclick="cargarMesEspecificoPorId('${docSnap.id}', 'admin')">${mesNombre}</button>`;
             });
 
             container.innerHTML = html;
             
             // Cargar automáticamente la primera planilla encontrada
-            const firstDoc = snapshot.docs[0].data();
-            cargarMesEspecifico(uid, firstDoc.mesKey, 'admin');
+            const firstDoc = snapshot.docs[0];
+            cargarMesEspecificoPorId(firstDoc.id, 'admin');
         }
 
         // --- GESTIÓN DE SOLAPAS PARA EL USUARIO COMÚN ---
-        async function cargarSolapasMesesUsuario(uid) {
+        async function cargarSolapasMesesUsuario(email) {
             const { db, collection, query, where, getDocs } = window.firebaseAuth;
             const container = document.getElementById('user-months-tabs');
 
-            const q = query(collection(db, "planillas"), where("uid", "==", uid));
+            const q = query(collection(db, "planillas"), where("userEmail", "==", email));
             const snapshot = await getDocs(q);
 
             if(snapshot.empty) {
@@ -574,27 +592,26 @@
             snapshot.forEach((docSnap) => {
                 const pData = docSnap.data();
                 const mesNombre = pData.mes || "Sin Mes";
-                html += `<button class="tab-btn user-month-tab" id="btn-user-m-${pData.mesKey}" onclick="cargarMesEspecifico('${uid}', '${pData.mesKey}', 'user')">${mesNombre}</button>`;
+                html += `<button class="tab-btn user-month-tab" id="btn-user-m-${pData.mesKey}" onclick="cargarMesEspecificoPorId('${docSnap.id}', 'user')">${mesNombre}</button>`;
             });
 
             container.innerHTML = html;
         }
 
-        async function cargarMesEspecifico(uid, mesKey, context) {
+        async function cargarMesEspecificoPorId(docId, context) {
             const { db, doc, getDoc } = window.firebaseAuth;
-            const docId = `${uid}_${mesKey}`;
-            
-            // Resaltar pestaña activa
-            const tabClass = context === 'admin' ? '.admin-month-tab' : '.user-month-tab';
-            const tabPrefix = context === 'admin' ? 'btn-admin-m-' : 'btn-user-m-';
-            document.querySelectorAll(tabClass).forEach(btn => btn.classList.remove('active'));
-            const btnActivo = document.getElementById(`${tabPrefix}${mesKey}`);
-            if(btnActivo) btnActivo.classList.add('active');
 
             const planSnap = await getDoc(doc(db, "planillas", docId));
             if(planSnap.exists()) {
                 const pData = planSnap.data();
-                
+
+                // Resaltar pestaña activa
+                const tabClass = context === 'admin' ? '.admin-month-tab' : '.user-month-tab';
+                const tabPrefix = context === 'admin' ? 'btn-admin-m-' : 'btn-user-m-';
+                document.querySelectorAll(tabClass).forEach(btn => btn.classList.remove('active'));
+                const btnActivo = document.getElementById(`${tabPrefix}${pData.mesKey}`);
+                if(btnActivo) btnActivo.classList.add('active');
+
                 document.getElementById('in-mes').value = pData.mes || '';
                 document.getElementById('p-mes').innerText = "MES: " + (pData.mes || '');
                 
@@ -604,7 +621,6 @@
                 document.getElementById('in-nombre').value = pData.nombre || '';
                 document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + (pData.nombre || '');
 
-                // Limpiar grilla antes de poblar
                 limpiarChecksYTiempos();
 
                 if(pData.dias) {
@@ -644,7 +660,7 @@
             }
         }
 
-        // --- LÓGICA DE LA PLANILLA Y GUARDADO EN FIRESTORE POR MES ---
+        // --- LÓGICA DE LA PLANILLA Y GUARDADO EN FIRESTORE POR MES Y CORREO ---
         const grid = document.getElementById('main-grid');
         const optionsMap = {
             "G": "Guardia",
@@ -741,7 +757,7 @@
         }
 
         window.guardarPlanilla = async function() {
-            if(!activeTargetUid) return;
+            if(!activeUserEmail) return;
             const { db, doc, setDoc } = window.firebaseAuth;
 
             const mesRaw = document.getElementById('in-mes').value.trim();
@@ -751,7 +767,8 @@
             }
 
             const mesKey = mesRaw.toUpperCase().replace(/\s+/g, '_');
-            const docId = `${activeTargetUid}_${mesKey}`;
+            const safeEmailId = activeUserEmail.replace(/[^a-zA-Z0-9]/g, '_');
+            const docId = `${safeEmailId}_${mesKey}`;
 
             const grado = document.getElementById('in-grado').value;
             const nombre = document.getElementById('in-nombre').value;
@@ -769,6 +786,7 @@
                 await setDoc(doc(db, "planillas", docId), {
                     docId: docId,
                     uid: activeTargetUid,
+                    userEmail: activeUserEmail,
                     mes: mesRaw.toUpperCase(),
                     mesKey: mesKey,
                     grado,
@@ -779,11 +797,10 @@
 
                 alert(`¡Planilla correspondiente a ${mesRaw.toUpperCase()} guardada exitosamente!`);
                 
-                // Actualizar las solapas del panel correspondiente
                 if(currentUserData.role === 'admin') {
-                    cargarSolapasMesesAdmin(activeTargetUid);
+                    cargarSolapasMesesAdmin(activeUserEmail);
                 } else {
-                    cargarSolapasMesesUsuario(activeTargetUid);
+                    cargarSolapasMesesUsuario(activeUserEmail);
                 }
             } catch (error) {
                 alert("Error al guardar la planilla: " + error.message);
