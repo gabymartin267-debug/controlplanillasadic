@@ -130,6 +130,46 @@
 
         button:hover { opacity: 0.9; }
 
+        /* ESTILOS PARA SOLAPAS / PESTAÑAS */
+        .tabs-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            background: #2a2a2a;
+            color: #ccc;
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: auto;
+            margin-top: 0;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            background: #3a3a3a;
+            color: white;
+        }
+
+        .tab-btn.active {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .tab-btn.admin-user-tab.active {
+            background: #ff9800;
+            border-color: #ff9800;
+        }
+
         /* CONFIGURACIÓN DE IMPRESIÓN */
         #printable-area { display: none; }
 
@@ -175,7 +215,6 @@
     <div id="auth-container" class="container" style="max-width: 400px; text-align: center;">
         <h2>Acceso - Control Planillas</h2>
         
-        <!-- Formulario de Login -->
         <div id="login-form">
             <input type="email" id="login-email" placeholder="Correo electrónico" style="margin-bottom:10px;">
             <input type="password" id="login-password" placeholder="Contraseña" style="margin-bottom:10px;">
@@ -183,7 +222,6 @@
             <p style="margin-top:15px; font-size:0.9em; cursor:pointer; color:var(--accent-color);" onclick="toggleAuthMode(true)">¿No tienes cuenta? Regístrate</p>
         </div>
 
-        <!-- Formulario de Registro -->
         <div id="register-form" style="display:none;">
             <input type="text" id="reg-nombre" placeholder="Nombre y Apellido" style="margin-bottom:10px;">
             <input type="email" id="reg-email" placeholder="Correo electrónico" style="margin-bottom:10px;">
@@ -200,7 +238,7 @@
         <button onclick="cerrarSesion()" style="background:#d9534f;">Cerrar Sesión</button>
     </div>
 
-    <!-- 3. PANEL DE ADMINISTRADOR (SOLICITUDES Y GESTIÓN) -->
+    <!-- 3. PANEL DE ADMINISTRADOR (SOLICITUDES) -->
     <div id="admin-panel" class="container" style="display:none; border: 2px solid var(--accent-color);">
         <h3>Panel de Administración - Solicitudes Pendientes</h3>
         <div id="admin-requests-list">
@@ -209,14 +247,16 @@
         <button onclick="cerrarSesion()" style="background:#d9534f; margin-top:15px; width:auto; padding: 10px 20px;">Cerrar Sesión Admin</button>
     </div>
 
-    <!-- 3.1. PANEL DE ADMINISTRADOR: PLANILLAS DE TODOS LOS USUARIOS -->
+    <!-- 3.1. PANEL DE ADMINISTRADOR: SOLAPAS POR USUARIOS Y SUS MESES -->
     <div id="admin-users-view" class="container" style="display:none; border: 2px solid #ff9800;">
         <h3>Gestión de Planillas de Personal (Vista Admin)</h3>
-        <p style="font-size: 0.9em; color: #aaa;">Selecciona un usuario para revisar, modificar, guardar o generar su PDF descargable:</p>
-        <div id="admin-user-selector-container" style="margin-bottom: 20px;">
-            <select id="admin-select-user" onchange="adminSelectedUserChanged()" style="padding: 10px; background: #2a2a2a; border: 1px solid var(--border-color); color: white; border-radius: 4px; width: 100%;">
-                <option value="">-- Seleccionar Usuario --</option>
-            </select>
+        
+        <p style="font-size: 0.9em; color: #aaa; margin-bottom: 5px;">1. Selecciona un usuario registrado:</p>
+        <div id="admin-users-tabs" class="tabs-container"></div>
+
+        <p style="font-size: 0.9em; color: #aaa; margin-top: 15px; margin-bottom: 5px;">2. Meses guardados del usuario:</p>
+        <div id="admin-months-tabs" class="tabs-container">
+            <span style="font-size:0.85em; color:#777;">Selecciona un usuario para ver sus meses.</span>
         </div>
     </div>
 
@@ -241,8 +281,16 @@
         </div>
 
         <div style="display: flex; gap: 10px;">
-            <button onclick="guardarPlanilla()" style="background: #28a745; flex: 1;">Guardar Planilla</button>
+            <button onclick="guardarPlanilla()" style="background: #28a745; flex: 1;">Guardar / Actualizar Planilla</button>
             <button onclick="imprimirPlanillaActual()" style="background: var(--accent-color); flex: 1;">Imprimir / Generar PDF</button>
+        </div>
+
+        <!-- SOLAPAS DE MESES GUARDADOS (VISTA USUARIO) -->
+        <div id="user-months-section" style="margin-top:25px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+            <h4 style="margin: 0 0 10px 0; color: var(--accent-color);">Tus Planillas Guardadas por Mes:</h4>
+            <div id="user-months-tabs" class="tabs-container">
+                <span style="font-size: 0.85em; color: #777;">No hay planillas guardadas aún.</span>
+            </div>
         </div>
     </div>
 
@@ -270,7 +318,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, updateDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBH0YCZAjC4uvvlP0UJB9rbujOhgTLOXNw",
@@ -286,13 +334,14 @@
         const db = getFirestore(app);
 
         window.firebaseAuth = {
-            auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, doc, setDoc, getDoc, updateDoc, updateProfile, onSnapshot, collection, getDocs, onAuthStateChanged
+            auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, doc, setDoc, getDoc, updateDoc, updateProfile, onSnapshot, collection, getDocs, query, where, onAuthStateChanged
         };
     </script>
 
     <script>
         let currentUserData = null;
         let activeTargetUid = null;
+        let activeSelectedMonth = "";
 
         window.toggleAuthMode = function(isRegister) {
             document.getElementById('login-form').style.display = isRegister ? 'none' : 'block';
@@ -354,7 +403,7 @@
             signOut(auth);
         }
 
-        // Observador del Estado de Sesión
+        // Observador de Sesión
         document.addEventListener("DOMContentLoaded", () => {
             const checkFirebaseInterval = setInterval(() => {
                 if (window.firebaseAuth) {
@@ -387,23 +436,24 @@
                                     adminUsersView.style.display = 'block';
                                     mainApp.style.display = 'block';
                                     document.getElementById('user-display-info').innerText = `Admin: ${currentUserData.nombreCompleto || 'GabyMartin'}`;
+                                    document.getElementById('user-months-section').style.display = 'none'; // Admin usa el panel superior
                                     
                                     activeTargetUid = user.uid;
-                                    cargarDatosPlanilla(user.uid);
                                     escucharSolicitudesPendientes();
-                                    poblarSelectAdminUsers();
+                                    cargarUsuariosAdminTabs();
                                 } else if (currentUserData.status === 'approved') {
                                     pendingContainer.style.display = 'none';
                                     adminPanel.style.display = 'none';
                                     adminUsersView.style.display = 'none';
                                     mainApp.style.display = 'block';
+                                    document.getElementById('user-months-section').style.display = 'block';
                                     document.getElementById('user-display-info').innerText = `Usuario: ${currentUserData.nombreCompleto}`;
                                     
                                     activeTargetUid = user.uid;
                                     document.getElementById('in-nombre').value = currentUserData.nombreCompleto;
                                     document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + currentUserData.nombreCompleto;
                                     
-                                    cargarDatosPlanilla(user.uid);
+                                    cargarSolapasMesesUsuario(user.uid);
                                 } else {
                                     pendingContainer.style.display = 'block';
                                     adminPanel.style.display = 'none';
@@ -449,37 +499,152 @@
             try {
                 await updateDoc(doc(db, "users", uid), { status: "approved" });
                 alert("Usuario autorizado correctamente.");
-                poblarSelectAdminUsers();
+                cargarUsuariosAdminTabs();
             } catch (error) {
                 alert("Error al autorizar: " + error.message);
             }
         }
 
-        async function poblarSelectAdminUsers() {
+        // --- GESTIÓN DE SOLAPAS PARA EL ADMINISTRADOR ---
+        async function cargarUsuariosAdminTabs() {
             const { db, collection, getDocs } = window.firebaseAuth;
-            const select = document.getElementById('admin-select-user');
+            const container = document.getElementById('admin-users-tabs');
             const snapshot = await getDocs(collection(db, "users"));
-            
-            let options = `<option value="">-- Selecciona una planilla de usuario --</option>`;
+
+            let html = "";
             snapshot.forEach((docSnap) => {
                 const data = docSnap.data();
                 if(data.status === 'approved') {
-                    options += `<option value="${data.uid}">${data.nombreCompleto} (${data.email})</option>`;
+                    html += `<button class="tab-btn admin-user-tab" id="btn-user-${data.uid}" onclick="seleccionarUsuarioAdmin('${data.uid}')">${data.nombreCompleto}</button>`;
                 }
             });
-            select.innerHTML = options;
+            container.innerHTML = html || "<span style='color:#777;'>No hay usuarios autorizados.</span>";
         }
 
-        window.adminSelectedUserChanged = async function() {
-            const select = document.getElementById('admin-select-user');
-            const selectedUid = select.value;
-            if(!selectedUid) return;
+        window.seleccionarUsuarioAdmin = async function(uid) {
+            document.querySelectorAll('.admin-user-tab').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`btn-user-${uid}`);
+            if(activeBtn) activeBtn.classList.add('active');
 
-            activeTargetUid = selectedUid;
-            await cargarDatosPlanilla(selectedUid);
+            activeTargetUid = uid;
+            cargarSolapasMesesAdmin(uid);
         }
 
-        // --- LÓGICA DE LA PLANILLA Y GUARDADO EN FIRESTORE ---
+        async function cargarSolapasMesesAdmin(uid) {
+            const { db, collection, query, where, getDocs } = window.firebaseAuth;
+            const container = document.getElementById('admin-months-tabs');
+
+            const q = query(collection(db, "planillas"), where("uid", "==", uid));
+            const snapshot = await getDocs(q);
+
+            if(snapshot.empty) {
+                container.innerHTML = "<span style='font-size:0.85em; color:#777;'>Este usuario no tiene planillas guardadas aún.</span>";
+                limpiarFormulario();
+                return;
+            }
+
+            let html = "";
+            snapshot.forEach((docSnap) => {
+                const pData = docSnap.data();
+                const mesNombre = pData.mes || "Sin Mes";
+                html += `<button class="tab-btn admin-month-tab" id="btn-admin-m-${pData.mesKey}" onclick="cargarMesEspecifico('${uid}', '${pData.mesKey}', 'admin')">${mesNombre}</button>`;
+            });
+
+            container.innerHTML = html;
+            
+            // Cargar automáticamente la primera planilla encontrada
+            const firstDoc = snapshot.docs[0].data();
+            cargarMesEspecifico(uid, firstDoc.mesKey, 'admin');
+        }
+
+        // --- GESTIÓN DE SOLAPAS PARA EL USUARIO COMÚN ---
+        async function cargarSolapasMesesUsuario(uid) {
+            const { db, collection, query, where, getDocs } = window.firebaseAuth;
+            const container = document.getElementById('user-months-tabs');
+
+            const q = query(collection(db, "planillas"), where("uid", "==", uid));
+            const snapshot = await getDocs(q);
+
+            if(snapshot.empty) {
+                container.innerHTML = "<span style='font-size:0.85em; color:#777;'>No tienes planillas guardadas aún. Completa el formulario y presiona 'Guardar'.</span>";
+                return;
+            }
+
+            let html = "";
+            snapshot.forEach((docSnap) => {
+                const pData = docSnap.data();
+                const mesNombre = pData.mes || "Sin Mes";
+                html += `<button class="tab-btn user-month-tab" id="btn-user-m-${pData.mesKey}" onclick="cargarMesEspecifico('${uid}', '${pData.mesKey}', 'user')">${mesNombre}</button>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        async function cargarMesEspecifico(uid, mesKey, context) {
+            const { db, doc, getDoc } = window.firebaseAuth;
+            const docId = `${uid}_${mesKey}`;
+            
+            // Resaltar pestaña activa
+            const tabClass = context === 'admin' ? '.admin-month-tab' : '.user-month-tab';
+            const tabPrefix = context === 'admin' ? 'btn-admin-m-' : 'btn-user-m-';
+            document.querySelectorAll(tabClass).forEach(btn => btn.classList.remove('active'));
+            const btnActivo = document.getElementById(`${tabPrefix}${mesKey}`);
+            if(btnActivo) btnActivo.classList.add('active');
+
+            const planSnap = await getDoc(doc(db, "planillas", docId));
+            if(planSnap.exists()) {
+                const pData = planSnap.data();
+                
+                document.getElementById('in-mes').value = pData.mes || '';
+                document.getElementById('p-mes').innerText = "MES: " + (pData.mes || '');
+                
+                document.getElementById('in-grado').value = pData.grado || '';
+                document.getElementById('p-grado').innerText = "GRADO: " + (pData.grado || '');
+
+                document.getElementById('in-nombre').value = pData.nombre || '';
+                document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + (pData.nombre || '');
+
+                // Limpiar grilla antes de poblar
+                limpiarChecksYTiempos();
+
+                if(pData.dias) {
+                    for(let i = 1; i <= 31; i++) {
+                        const dayInfo = pData.dias[i];
+                        if(dayInfo) {
+                            if(dayInfo.checked) {
+                                dayInfo.checked.forEach(val => {
+                                    const cb = document.querySelector(`.chk-day-${i}[value="${val}"]`);
+                                    if(cb) cb.checked = true;
+                                });
+                            }
+                            if(dayInfo.start) document.getElementById(`start-${i}`).value = dayInfo.start;
+                            if(dayInfo.end) document.getElementById(`end-${i}`).value = dayInfo.end;
+                            
+                            window.handleOptionChange(i);
+                        }
+                    }
+                }
+                calculateHours();
+            }
+        }
+
+        function limpiarFormulario() {
+            document.getElementById('in-mes').value = '';
+            document.getElementById('in-grado').value = '';
+            limpiarChecksYTiempos();
+            calculateHours();
+        }
+
+        function limpiarChecksYTiempos() {
+            for(let i = 1; i <= 31; i++) {
+                document.querySelectorAll(`.chk-day-${i}`).forEach(cb => cb.checked = false);
+                document.getElementById(`start-${i}`).value = '';
+                document.getElementById(`end-${i}`).value = '';
+                document.getElementById(`time-box-${i}`).style.display = 'none';
+            }
+        }
+
+        // --- LÓGICA DE LA PLANILLA Y GUARDADO EN FIRESTORE POR MES ---
         const grid = document.getElementById('main-grid');
         const optionsMap = {
             "G": "Guardia",
@@ -579,7 +744,15 @@
             if(!activeTargetUid) return;
             const { db, doc, setDoc } = window.firebaseAuth;
 
-            const mes = document.getElementById('in-mes').value;
+            const mesRaw = document.getElementById('in-mes').value.trim();
+            if(!mesRaw) {
+                alert("Por favor ingresa el MES de la planilla antes de guardar.");
+                return;
+            }
+
+            const mesKey = mesRaw.toUpperCase().replace(/\s+/g, '_');
+            const docId = `${activeTargetUid}_${mesKey}`;
+
             const grado = document.getElementById('in-grado').value;
             const nombre = document.getElementById('in-nombre').value;
 
@@ -593,76 +766,28 @@
             }
 
             try {
-                await setDoc(doc(db, "planillas", activeTargetUid), {
+                await setDoc(doc(db, "planillas", docId), {
+                    docId: docId,
                     uid: activeTargetUid,
-                    mes,
+                    mes: mesRaw.toUpperCase(),
+                    mesKey: mesKey,
                     grado,
                     nombre,
                     dias: diasData,
                     ultimaActualizacion: new Date()
                 }, { merge: true });
 
-                alert("¡Planilla guardada exitosamente en la base de datos!");
+                alert(`¡Planilla correspondiente a ${mesRaw.toUpperCase()} guardada exitosamente!`);
+                
+                // Actualizar las solapas del panel correspondiente
+                if(currentUserData.role === 'admin') {
+                    cargarSolapasMesesAdmin(activeTargetUid);
+                } else {
+                    cargarSolapasMesesUsuario(activeTargetUid);
+                }
             } catch (error) {
                 alert("Error al guardar la planilla: " + error.message);
             }
-        }
-
-        async function cargarDatosPlanilla(targetUid) {
-            const { db, doc, getDoc } = window.firebaseAuth;
-            
-            // Limpiar formulario primero
-            document.getElementById('in-mes').value = '';
-            document.getElementById('in-grado').value = '';
-            for(let i = 1; i <= 31; i++) {
-                document.querySelectorAll(`.chk-day-${i}`).forEach(cb => cb.checked = false);
-                document.getElementById(`start-${i}`).value = '';
-                document.getElementById(`end-${i}`).value = '';
-                document.getElementById(`time-box-${i}`).style.display = 'none';
-            }
-
-            // Cargar datos de usuario para el nombre base
-            const userSnap = await getDoc(doc(db, "users", targetUid));
-            if(userSnap.exists()) {
-                const uData = userSnap.data();
-                document.getElementById('in-nombre').value = uData.nombreCompleto || '';
-                document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + (uData.nombreCompleto || '');
-            }
-
-            // Cargar planilla de Firestore
-            const planSnap = await getDoc(doc(db, "planillas", targetUid));
-            if(planSnap.exists()) {
-                const pData = planSnap.data();
-                document.getElementById('in-mes').value = pData.mes || '';
-                document.getElementById('p-mes').innerText = "MES: " + (pData.mes || '');
-                
-                document.getElementById('in-grado').value = pData.grado || '';
-                document.getElementById('p-grado').innerText = "GRADO: " + (pData.grado || '');
-
-                if(pData.nombre) {
-                    document.getElementById('in-nombre').value = pData.nombre;
-                    document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + pData.nombre;
-                }
-
-                if(pData.dias) {
-                    for(let i = 1; i <= 31; i++) {
-                        const dayInfo = pData.dias[i];
-                        if(dayInfo) {
-                            if(dayInfo.checked) {
-                                dayInfo.checked.forEach(val => {
-                                    const cb = document.querySelector(`.chk-day-${i}[value="${val}"]`);
-                                    if(cb) cb.checked = true;
-                                });
-                            }
-                            if(dayInfo.start) document.getElementById(`start-${i}`).value = dayInfo.start;
-                            if(dayInfo.end) document.getElementById(`end-${i}`).value = dayInfo.end;
-                            
-                            window.handleOptionChange(i);
-                        }
-                    }
-                }
-            }
-            calculateHours();
         }
 
         window.imprimirPlanillaActual = function() {
