@@ -6,7 +6,7 @@
     <title>Planilla de Servicios - Powered by GabyMartin</title>
     <!-- Configuración PWA para Android e iOS -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#00adb5">
+    <meta name="theme-color" content="#00d2ff">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,21 +14,34 @@
 
     <style>
         :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-color: #e0e0e0;
-            --accent-color: #00adb5;
-            --border-color: #333;
+            /* PALETA MODO OSCURO: AZUL MARINO A CELESTE */
+            --bg-color: #0b132b;          /* Azul Marino Muy Oscuro / Noche */
+            --card-bg: #1c2541;          /* Azul Marino Profundo para tarjetas */
+            --input-bg: #0b132b;         /* Fondo de inputs */
+            --text-color: #e0f2fe;        /* Celeste helado muy claro para texto */
+            --accent-color: #00d2ff;      /* Celeste Neón / Cyan brillante */
+            --accent-hover: #00a8e8;      /* Celeste Intenso hover */
+            --secondary-accent: #3a86ff; /* Azul Cobalto / Eléctrico */
+            --border-color: #2a3a5e;     /* Borde azulado sutil */
+            --admin-accent: #38ef7d;     /* Verde de confirmación/admin */
         }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background-color: var(--bg-color);
+            background-image: radial-gradient(circle at top, #1c2541 0%, #0b132b 100%);
             color: var(--text-color);
             padding: 20px;
+            margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
+            min-height: 100vh;
+        }
+
+        h2, h3, h4 {
+            color: #ffffff;
+            letter-spacing: 0.5px;
         }
 
         .container {
@@ -36,143 +49,197 @@
             max-width: 1100px;
             background: var(--card-bg);
             padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
             margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
         }
 
         .form-header {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
             margin-bottom: 25px;
         }
 
+        .form-header label {
+            font-size: 0.8em;
+            font-weight: 600;
+            color: var(--accent-color);
+            margin-bottom: 5px;
+            display: block;
+        }
+
         input[type="text"], input[type="password"], input[type="email"], input[type="time"] {
-            padding: 8px;
-            background: #2a2a2a;
+            padding: 10px 12px;
+            background: var(--input-bg);
             border: 1px solid var(--border-color);
-            color: white;
-            border-radius: 4px;
+            color: #ffffff;
+            border-radius: 6px;
             width: 100%;
             box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus, input[type="time"]:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 8px rgba(0, 210, 255, 0.3);
         }
 
         .days-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-            gap: 10px;
+            gap: 12px;
         }
 
         .day-card {
             border: 1px solid var(--border-color);
-            padding: 10px;
-            border-radius: 4px;
-            background: #252525;
+            padding: 12px;
+            border-radius: 8px;
+            background: rgba(11, 19, 43, 0.6);
+            transition: transform 0.2s ease, border-color 0.2s ease;
         }
 
-        .day-label { color: var(--accent-color); font-weight: bold; font-size: 0.8em; margin-bottom: 8px; display: block; }
+        .day-card:hover {
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+        }
+
+        .day-label { 
+            color: var(--accent-color); 
+            font-weight: 700; 
+            font-size: 0.85em; 
+            margin-bottom: 10px; 
+            display: block; 
+            letter-spacing: 0.5px;
+        }
 
         .checkbox-group {
             display: flex;
             flex-direction: column;
-            gap: 4px;
-            font-size: 0.8em;
+            gap: 6px;
+            font-size: 0.82em;
         }
 
         .checkbox-group label {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             cursor: pointer;
-            color: #ccc;
+            color: #cbd5e1;
+            transition: color 0.2s ease;
+        }
+
+        .checkbox-group label:hover {
+            color: #ffffff;
         }
 
         .checkbox-group input[type="checkbox"] {
             cursor: pointer;
             accent-color: var(--accent-color);
+            width: 15px;
+            height: 15px;
         }
 
         .time-inputs {
-            margin-top: 8px;
+            margin-top: 10px;
             display: none;
             flex-direction: column;
-            gap: 5px;
-            border-top: 1px solid #333;
-            padding-top: 6px;
+            gap: 6px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 8px;
         }
 
-        .time-inputs label { font-size: 0.7em; color: #888; }
+        .time-inputs label { font-size: 0.72em; color: #94a3b8; }
 
         .total-section {
             margin-top: 25px;
-            padding: 15px;
-            border-top: 2px solid var(--accent-color);
+            padding: 18px;
+            border: 1px solid var(--border-color);
+            background: rgba(0, 210, 255, 0.05);
+            border-radius: 8px;
             font-weight: bold;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        #total-final { font-size: 1.5em; color: var(--accent-color); }
+        #total-final { 
+            font-size: 1.8em; 
+            color: var(--accent-color); 
+            text-shadow: 0 0 10px rgba(0, 210, 255, 0.4);
+        }
 
         button {
             margin-top: 20px;
             width: 100%;
-            padding: 15px;
-            background: var(--accent-color);
-            color: white;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, var(--secondary-accent), var(--accent-hover));
+            color: #ffffff;
             border: none;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
-            border-radius: 4px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 168, 232, 0.3);
         }
 
-        button:hover { opacity: 0.9; }
+        button:hover { 
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 210, 255, 0.4);
+            opacity: 0.95;
+        }
 
         .tabs-container {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             margin-top: 15px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
         }
 
         .tab-btn {
-            background: #2a2a2a;
-            color: #ccc;
+            background: var(--input-bg);
+            color: #94a3b8;
             border: 1px solid var(--border-color);
             padding: 8px 16px;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             width: auto;
             margin-top: 0;
-            font-size: 0.9em;
+            font-size: 0.88em;
+            box-shadow: none;
             transition: all 0.2s ease;
         }
 
         .tab-btn:hover {
-            background: #3a3a3a;
-            color: white;
+            background: #2a3a5e;
+            color: #ffffff;
         }
 
         .tab-btn.active {
             background: var(--accent-color);
-            color: white;
+            color: #0b132b;
             border-color: var(--accent-color);
-            font-weight: bold;
+            font-weight: 700;
+            box-shadow: 0 0 12px rgba(0, 210, 255, 0.4);
         }
 
         .tab-btn.admin-user-tab.active {
-            background: #ff9800;
-            border-color: #ff9800;
+            background: #38ef7d;
+            border-color: #38ef7d;
+            color: #0b132b;
+            box-shadow: 0 0 12px rgba(56, 239, 125, 0.4);
         }
 
+        /* ÁREA DE IMPRESIÓN LIMPIA Y BLANCA */
         #printable-area { display: none; }
 
         @media print {
-            body { background: white; color: black; }
+            body { background: white; color: black; padding: 0; }
             .container, button, #auth-container, #pending-container, #admin-panel, #admin-users-view { display: none !important; }
             #printable-area { 
                 display: block !important; 
@@ -211,58 +278,58 @@
 
     <!-- 1. PANTALLA DE ACCESO / LOGIN Y REGISTRO -->
     <div id="auth-container" class="container" style="max-width: 400px; text-align: center;">
-        <h2>Acceso - Control Planillas</h2>
+        <h2 style="color: var(--accent-color); margin-bottom: 20px;">Control Planillas</h2>
         
         <div id="login-form">
-            <input type="email" id="login-email" placeholder="Correo electrónico" style="margin-bottom:10px;">
-            <input type="password" id="login-password" placeholder="Contraseña" style="margin-bottom:10px;">
+            <input type="email" id="login-email" placeholder="Correo electrónico" style="margin-bottom:12px;">
+            <input type="password" id="login-password" placeholder="Contraseña" style="margin-bottom:12px;">
             <button onclick="handleLogin()">Ingresar</button>
-            <p style="margin-top:15px; font-size:0.9em; cursor:pointer; color:var(--accent-color);" onclick="toggleAuthMode(true)">¿No tienes cuenta? Regístrate</p>
+            <p style="margin-top:18px; font-size:0.85em; cursor:pointer; color:var(--accent-color);" onclick="toggleAuthMode(true)">¿No tienes cuenta? Regístrate</p>
         </div>
 
         <div id="register-form" style="display:none;">
-            <input type="text" id="reg-nombre" placeholder="Nombre y Apellido" style="margin-bottom:10px;">
-            <input type="email" id="reg-email" placeholder="Correo electrónico" style="margin-bottom:10px;">
-            <input type="password" id="reg-password" placeholder="Contraseña" style="margin-bottom:10px;">
+            <input type="text" id="reg-nombre" placeholder="Nombre y Apellido" style="margin-bottom:12px;">
+            <input type="email" id="reg-email" placeholder="Correo electrónico" style="margin-bottom:12px;">
+            <input type="password" id="reg-password" placeholder="Contraseña" style="margin-bottom:12px;">
             <button onclick="handleRegister()">Registrarse</button>
-            <p style="margin-top:15px; font-size:0.9em; cursor:pointer; color:var(--accent-color);" onclick="toggleAuthMode(false)">¿Ya tienes cuenta? Inicia sesión</p>
+            <p style="margin-top:18px; font-size:0.85em; cursor:pointer; color:var(--accent-color);" onclick="toggleAuthMode(false)">¿Ya tienes cuenta? Inicia sesión</p>
         </div>
     </div>
 
     <!-- 2. PANTALLA DE ESPERA -->
-    <div id="pending-container" class="container" style="display:none; max-width: 400px; text-align: center;">
-        <h2>Cuenta Pendiente de Aprobación</h2>
-        <p>Tu registro fue exitoso. El administrador (GabyMartin) debe autorizar tu acceso para utilizar la aplicación.</p>
-        <button onclick="cerrarSesion()" style="background:#d9534f;">Cerrar Sesión</button>
+    <div id="pending-container" class="container" style="display:none; max-width: 420px; text-align: center;">
+        <h2 style="color: #ffb703;">Cuenta Pendiente</h2>
+        <p style="color: #cbd5e1; font-size: 0.95em;">Tu registro fue exitoso. El administrador (GabyMartin) debe autorizar tu acceso para utilizar la aplicación.</p>
+        <button onclick="cerrarSesion()" style="background: linear-gradient(135deg, #e63946, #d62828); margin-top: 15px;">Cerrar Sesión</button>
     </div>
 
     <!-- 3. PANEL DE ADMINISTRADOR (SOLICITUDES) -->
-    <div id="admin-panel" class="container" style="display:none; border: 2px solid var(--accent-color);">
-        <h3>Panel de Administración - Solicitudes Pendientes</h3>
+    <div id="admin-panel" class="container" style="display:none; border-color: var(--accent-color);">
+        <h3 style="color: var(--accent-color); margin-top:0;">Panel de Administración - Solicitudes Pendientes</h3>
         <div id="admin-requests-list">
-            <p>Cargando solicitudes...</p>
+            <p style="color: #94a3b8;">Cargando solicitudes...</p>
         </div>
-        <button onclick="cerrarSesion()" style="background:#d9534f; margin-top:15px; width:auto; padding: 10px 20px;">Cerrar Sesión Admin</button>
+        <button onclick="cerrarSesion()" style="background: linear-gradient(135deg, #e63946, #d62828); margin-top:15px; width:auto; padding: 10px 20px;">Cerrar Sesión Admin</button>
     </div>
 
     <!-- 3.1. PANEL DE ADMINISTRADOR: SOLAPAS POR USUARIOS Y SUS MESES -->
-    <div id="admin-users-view" class="container" style="display:none; border: 2px solid #ff9800;">
-        <h3>Gestión de Planillas de Personal (Vista Admin)</h3>
+    <div id="admin-users-view" class="container" style="display:none; border-color: var(--admin-accent);">
+        <h3 style="color: var(--admin-accent); margin-top:0;">Gestión de Planillas de Personal (Vista Admin)</h3>
         
-        <p style="font-size: 0.9em; color: #aaa; margin-bottom: 5px;">1. Selecciona un usuario registrado:</p>
+        <p style="font-size: 0.85em; color: #94a3b8; margin-bottom: 6px;">1. Selecciona un usuario registrado:</p>
         <div id="admin-users-tabs" class="tabs-container"></div>
 
-        <p style="font-size: 0.9em; color: #aaa; margin-top: 15px; margin-bottom: 5px;">2. Meses guardados del usuario:</p>
+        <p style="font-size: 0.85em; color: #94a3b8; margin-top: 15px; margin-bottom: 6px;">2. Meses guardados del usuario:</p>
         <div id="admin-months-tabs" class="tabs-container">
-            <span style="font-size:0.85em; color:#777;">Selecciona un usuario para ver sus meses.</span>
+            <span style="font-size:0.85em; color:#64748b;">Selecciona un usuario para ver sus meses.</span>
         </div>
     </div>
 
     <!-- 4. APLICACIÓN PRINCIPAL (PLANILLA DE SERVICIOS) -->
     <div class="container" id="main-app" style="display:none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <span id="user-display-info" style="font-size: 0.9em; color: var(--accent-color);"></span>
-            <button onclick="cerrarSesion()" style="width: auto; padding: 5px 10px; margin: 0; background: #333; font-size: 0.8em;">Salir</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <span id="user-display-info" style="font-size: 0.9em; font-weight: 600; color: var(--accent-color);"></span>
+            <button onclick="cerrarSesion()" style="width: auto; padding: 6px 14px; margin: 0; background: rgba(255,255,255,0.1); font-size: 0.8em; box-shadow: none;">Salir</button>
         </div>
 
         <div class="form-header">
@@ -274,20 +341,20 @@
         <div class="days-grid" id="main-grid"></div>
 
         <div class="total-section">
-            CANTIDAD TOTAL HORAS DE ADICIONAL:
+            <span style="letter-spacing: 0.5px;">CANTIDAD TOTAL HORAS DE ADICIONAL:</span>
             <span id="total-final">0.0</span>
         </div>
 
-        <div style="display: flex; gap: 10px;">
-            <button onclick="guardarPlanilla()" style="background: #28a745; flex: 1;">Guardar / Actualizar Planilla</button>
-            <button onclick="imprimirPlanillaActual()" style="background: var(--accent-color); flex: 1;">Imprimir / Generar PDF</button>
+        <div style="display: flex; gap: 12px; margin-top: 20px;">
+            <button onclick="guardarPlanilla()" style="background: linear-gradient(135deg, #2b9348, #55a630); flex: 1; box-shadow: 0 4px 12px rgba(43, 147, 72, 0.3);">Guardar / Actualizar Planilla</button>
+            <button onclick="imprimirPlanillaActual()" style="background: linear-gradient(135deg, var(--secondary-accent), var(--accent-hover)); flex: 1;">Imprimir / Generar PDF</button>
         </div>
 
         <!-- SOLAPAS DE MESES GUARDADOS (VISTA USUARIO) -->
-        <div id="user-months-section" style="margin-top:25px; border-top: 1px solid var(--border-color); padding-top: 15px;">
-            <h4 style="margin: 0 0 10px 0; color: var(--accent-color);">Tus Planillas Guardadas por Mes:</h4>
+        <div id="user-months-section" style="margin-top:25px; border-top: 1px solid var(--border-color); padding-top: 18px;">
+            <h4 style="margin: 0 0 10px 0; color: var(--accent-color); font-weight: 600;">Tus Planillas Guardadas por Mes:</h4>
             <div id="user-months-tabs" class="tabs-container">
-                <span style="font-size: 0.85em; color: #777;">Cargando planillas...</span>
+                <span style="font-size: 0.85em; color: #64748b;">Cargando planillas...</span>
             </div>
         </div>
     </div>
@@ -490,14 +557,14 @@
                     if (data.status === 'pending' && !emailsVistos.has(mailNorm)) {
                         emailsVistos.add(mailNorm);
                         html += `
-                            <div style="background:#2a2a2a; padding:10px; margin-bottom:8px; border-radius:4px; display:flex; justify-content:space-between; align-items:center;">
+                            <div style="background: var(--input-bg); padding:12px; margin-bottom:8px; border-radius:6px; border:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
                                 <span><b>${data.nombreCompleto}</b> (${data.email})</span>
-                                <button onclick="aprobarUsuario('${data.uid}')" style="width:auto; padding:5px 12px; margin:0;">Autorizar</button>
+                                <button onclick="aprobarUsuario('${data.uid}')" style="width:auto; padding:6px 14px; margin:0; background:linear-gradient(135deg, #2b9348, #55a630);">Autorizar</button>
                             </div>
                         `;
                     }
                 });
-                listContainer.innerHTML = html || "<p>No hay solicitudes pendientes en este momento.</p>";
+                listContainer.innerHTML = html || "<p style='color:#94a3b8;'>No hay solicitudes pendientes en este momento.</p>";
             });
         }
 
@@ -530,7 +597,7 @@
                     html += `<button class="tab-btn admin-user-tab" id="btn-user-${safeEmailId}" onclick="seleccionarUsuarioAdmin('${data.uid}', '${mailNorm}', '${safeEmailId}')">${data.nombreCompleto}</button>`;
                 }
             });
-            container.innerHTML = html || "<span style='color:#777;'>No hay usuarios autorizados.</span>";
+            container.innerHTML = html || "<span style='color:#64748b;'>No hay usuarios autorizados.</span>";
         }
 
         window.seleccionarUsuarioAdmin = function(uid, email, safeEmailId) {
@@ -558,7 +625,7 @@
             });
 
             if(planillasEncontradas.length === 0) {
-                container.innerHTML = "<span style='font-size:0.85em; color:#777;'>Este usuario no tiene planillas guardadas aún.</span>";
+                container.innerHTML = "<span style='font-size:0.85em; color:#64748b;'>Este usuario no tiene planillas guardadas aún.</span>";
                 limpiarFormulario();
                 return;
             }
@@ -588,7 +655,7 @@
                 });
 
                 if(planillasEncontradas.length === 0) {
-                    container.innerHTML = "<span style='font-size:0.85em; color:#777;'>No tienes planillas guardadas aún. Completa el formulario y presiona 'Guardar'.</span>";
+                    container.innerHTML = "<span style='font-size:0.85em; color:#64748b;'>No tienes planillas guardadas aún. Completa el formulario y presiona 'Guardar'.</span>";
                     return;
                 }
 
