@@ -1,1140 +1,232 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planilla de Servicios - Powered by GabyMartin</title>
-    <!-- Configuración PWA para Android e iOS -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#00d2ff">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Planilla Servicios">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control Planillas Adicionales</title>
+  
+  <!-- Configuración PWA y Web App -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
+  <meta name="theme-color" content="#00adb5">
 
-    <style>
-        :root {
-            /* PALETA MODO OSCURO: AZUL MARINO A CELESTE */
-            --bg-color: #0b132b;          /* Azul Marino Muy Oscuro / Noche */
-            --card-bg: #1c2541;          /* Azul Marino Profundo para tarjetas */
-            --input-bg: #0b132b;         /* Fondo de inputs */
-            --text-color: #e0f2fe;        /* Celeste helado muy claro para texto */
-            --accent-color: #00d2ff;      /* Celeste Neón / Cyan brillante */
-            --accent-hover: #00a8e8;      /* Celeste Intenso hover */
-            --secondary-accent: #3a86ff; /* Azul Cobalto / Eléctrico */
-            --border-color: #2a3a5e;     /* Borde azulado sutil */
-            --admin-accent: #38ef7d;     /* Verde de confirmación/admin */
-        }
+  <!-- Estilos CSS -->
+  <style>
+    :root {
+      --bg-color: #121212;
+      --card-bg: #1e1e1e;
+      --accent-color: #00adb5;
+      --text-color: #eeeeee;
+      --border-color: #333333;
+    }
 
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg-color);
-            background-image: radial-gradient(circle at top, #1c2541 0%, #0b132b 100%);
-            color: var(--text-color);
-            padding: 20px;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
-        h2, h3, h4 {
-            color: #ffffff;
-            letter-spacing: 0.5px;
-        }
+    .container {
+      width: 100%;
+      max-width: 600px;
+      background-color: var(--card-bg);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
 
-        .container {
-            width: 100%;
-            max-width: 1100px;
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-            margin-bottom: 20px;
-            border: 1px solid var(--border-color);
-            box-sizing: border-box;
-        }
+    h1, h2 {
+      text-align: center;
+      color: var(--accent-color);
+    }
 
-        .form-header {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
 
-        .form-header label {
-            font-size: 0.8em;
-            font-weight: 600;
-            color: var(--accent-color);
-            margin-bottom: 5px;
-            display: block;
-        }
+    label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      display: block;
+    }
 
-        input[type="text"], input[type="password"], input[type="email"], input[type="time"] {
-            padding: 10px 12px;
-            background: var(--input-bg);
-            border: 1px solid var(--border-color);
-            color: #ffffff;
-            border-radius: 6px;
-            width: 100%;
-            box-sizing: border-box;
-            outline: none;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      background-color: #2a2a2a;
+      color: var(--text-color);
+      box-sizing: border-box;
+    }
 
-        input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus, input[type="time"]:focus {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 8px rgba(0, 210, 255, 0.3);
-        }
+    button {
+      background-color: var(--accent-color);
+      color: #fff;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      margin-top: 10px;
+    }
 
-        .days-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-            gap: 12px;
-        }
+    button:hover {
+      opacity: 0.9;
+    }
 
-        .day-card {
-            border: 1px solid var(--border-color);
-            padding: 12px;
-            border-radius: 8px;
-            background: rgba(11, 19, 43, 0.6);
-            transition: transform 0.2s ease, border-color 0.2s ease;
-        }
+    .table-container {
+      margin-top: 30px;
+      overflow-x: auto;
+    }
 
-        .day-card:hover {
-            border-color: var(--accent-color);
-            transform: translateY(-2px);
-        }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
 
-        .day-label { 
-            color: var(--accent-color); 
-            font-weight: 700; 
-            font-size: 0.85em; 
-            margin-bottom: 10px; 
-            display: block; 
-            letter-spacing: 0.5px;
-        }
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 8px;
+      text-align: left;
+    }
 
-        .checkbox-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            font-size: 0.82em;
-        }
+    th {
+      background-color: var(--accent-color);
+      color: #ffffff;
+    }
 
-        .checkbox-group label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            color: #cbd5e1;
-            transition: color 0.2s ease;
-        }
+    footer {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 0.8em;
+      color: #888;
+    }
+  </style>
 
-        .checkbox-group label:hover {
-            color: #ffffff;
-        }
-
-        .checkbox-group input[type="checkbox"] {
-            cursor: pointer;
-            accent-color: var(--accent-color);
-            width: 15px;
-            height: 15px;
-        }
-
-        .time-inputs {
-            margin-top: 10px;
-            display: none;
-            flex-direction: column;
-            gap: 6px;
-            border-top: 1px solid var(--border-color);
-            padding-top: 8px;
-        }
-
-        .time-inputs label { font-size: 0.72em; color: #94a3b8; }
-
-        .total-section {
-            margin-top: 25px;
-            padding: 18px;
-            border: 1px solid var(--border-color);
-            background: rgba(0, 210, 255, 0.05);
-            border-radius: 8px;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        #total-final { 
-            font-size: 1.8em; 
-            color: var(--accent-color); 
-            text-shadow: 0 0 10px rgba(0, 210, 255, 0.4);
-        }
-
-        /* SECCIÓN DE FIRMA DIGITAL */
-        .signature-section {
-            margin-top: 25px;
-            padding: 18px;
-            border: 1px solid var(--border-color);
-            background: rgba(11, 19, 43, 0.4);
-            border-radius: 8px;
-        }
-
-        .signature-section h4 {
-            margin-top: 0;
-            margin-bottom: 12px;
-            color: var(--accent-color);
-        }
-
-        .signature-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            align-items: center;
-        }
-
-        #sig-canvas {
-            background-color: #ffffff;
-            border: 2px dashed var(--accent-color);
-            border-radius: 6px;
-            cursor: crosshair;
-            touch-action: none;
-            width: 100%;
-            max-width: 400px;
-            height: 150px;
-        }
-
-        .sig-controls {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-            width: 100%;
-        }
-
-        .sig-btn {
-            background: var(--input-bg);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-size: 0.85em;
-            cursor: pointer;
-            width: auto;
-            margin-top: 0;
-            box-shadow: none;
-        }
-
-        .sig-btn:hover {
-            border-color: var(--accent-color);
-            color: #ffffff;
-        }
-
-        button {
-            margin-top: 20px;
-            width: 100%;
-            padding: 12px 20px;
-            background: linear-gradient(135deg, var(--secondary-accent), var(--accent-hover));
-            color: #ffffff;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(0, 168, 232, 0.3);
-        }
-
-        button:hover { 
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(0, 210, 255, 0.4);
-            opacity: 0.95;
-        }
-
-        .tabs-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 15px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 12px;
-        }
-
-        .tab-btn {
-            background: var(--input-bg);
-            color: #94a3b8;
-            border: 1px solid var(--border-color);
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            width: auto;
-            margin-top: 0;
-            font-size: 0.88em;
-            box-shadow: none;
-            transition: all 0.2s ease;
-        }
-
-        .tab-btn:hover {
-            background: #2a3a5e;
-            color: #ffffff;
-        }
-
-        .tab-btn.active {
-            background: var(--accent-color);
-            color: #0b132b;
-            border-color: var(--accent-color);
-            font-weight: 700;
-            box-shadow: 0 0 12px rgba(0, 210, 255, 0.4);
-        }
-
-        .tab-btn.admin-user-tab.active {
-            background: #38ef7d;
-            border-color: #38ef7d;
-            color: #0b132b;
-            box-shadow: 0 0 12px rgba(56, 239, 125, 0.4);
-        }
-
-        /* ÁREA DE IMPRESIÓN LIMPIA Y BLANCA */
-        #printable-area { display: none; }
-
-        @media print {
-            body { background: white; color: black; padding: 0; }
-            .container, button, #auth-container, #pending-container, #admin-panel, #admin-users-view { display: none !important; }
-            #printable-area { 
-                display: block !important; 
-                width: 100%; 
-                color: black; 
-                background: white; 
-                font-family: Arial, sans-serif;
-            }
-            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-            td { 
-                border: 1px solid black; 
-                width: 14.2%; 
-                height: 90px; 
-                vertical-align: top; 
-                padding: 4px; 
-                position: relative; 
-            }
-            .p-day-num { font-weight: bold; float: right; font-size: 12px; }
-            .p-day-content { 
-                margin-top: 16px; 
-                text-align: center; 
-                font-size: 8.5px; 
-                font-weight: bold;
-                text-transform: uppercase;
-                line-height: 1.2;
-            }
-            .p-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 15px; }
-            .p-footer { margin-top: 20px; font-size: 11px; }
-            .p-sigs { display: flex; justify-content: flex-end; gap: 50px; margin-top: 50px; }
-            .p-sig-box { 
-                border-top: 1px solid black; 
-                width: 200px; 
-                text-align: center; 
-                padding-top: 5px; 
-                position: relative;
-            }
-            .p-sig-img {
-                position: absolute;
-                bottom: 20px;
-                left: 50%;
-                transform: translateX(-50%);
-                max-width: 180px;
-                max-height: 60px;
-                object-fit: contain;
-                display: none;
-            }
-            .watermark { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: black; font-weight: bold; }
-        }
-    </style>
+  <!-- SDK de Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-    <!-- 1. PANTALLA DE ACCESO / LOGIN Y REGISTRO -->
-    <div id="auth-container" class="container" style="max-width: 400px; text-align: center;">
-        <h2 style="color: var(--accent-color); margin-bottom: 20px;">Control Planillas</h2>
-        
-        <div id="login-form">
-            <input type="email" id="login-email" placeholder="Correo electrónico" style="margin-bottom:12px;">
-            <input type="password" id="login-password" placeholder="Contraseña" style="margin-bottom:12px;">
-            <button onclick="handleLogin()">Ingresar</button>
-            <p style="margin-top:18px; font-size:0.85em; cursor:pointer; color:var(--accent-color);" onclick="toggleAuthMode(true)">¿No tienes cuenta? Regístrate</p>
-        </div>
+  <div class="container">
+    <h1>Control Planillas Adicionales</h1>
 
-        <div id="register-form" style="display:none;">
-            <input type="text" id="reg-nombre" placeholder="Nombre y Apellido" style="margin-bottom:12px;">
-            <input type="email" id="reg-email" placeholder="Correo electrónico" style="margin-bottom:12px;">
-            <input type="password" id="reg-password" placeholder="Contraseña" style="margin-bottom:12px;">
-            <button onclick="handleRegister()">Registrarse</button>
-            <p style="margin-top:18px; font-size:0.85em; cursor:pointer; color:var(--accent-color);" onclick="toggleAuthMode(false)">¿Ya tienes cuenta? Inicia sesión</p>
-        </div>
+    <form id="registroForm">
+      <div>
+        <label for="fecha">Fecha:</label>
+        <input type="date" id="fecha" required>
+      </div>
+
+      <div>
+        <label for="personal">Personal / Objetivo:</label>
+        <input type="text" id="personal" placeholder="Ingrese detalle" required>
+      </div>
+
+      <div>
+        <label for="movil">Móvil / Vehículo:</label>
+        <input type="text" id="movil" placeholder="Ingrese móvil">
+      </div>
+
+      <div>
+        <label for="grupo">Grupo:</label>
+        <select id="grupo">
+          <option value="General">General</option>
+          <option value="Amigos de Angie">Amigos de Angie</option>
+          <option value="Amigos Sra Amalia">Amigos Sra Amalia</option>
+        </select>
+      </div>
+
+      <button type="submit">Guardar Registro</button>
+    </form>
+
+    <div class="table-container">
+      <h2>Registros Guardados</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Personal</th>
+            <th>Móvil</th>
+            <th>Grupo</th>
+          </tr>
+        </thead>
+        <tbody id="tablaCuerpo">
+          <!-- Datos cargados dinámicamente -->
+        </tbody>
+      </table>
     </div>
-
-    <!-- 2. PANTALLA DE ESPERA -->
-    <div id="pending-container" class="container" style="display:none; max-width: 420px; text-align: center;">
-        <h2 style="color: #ffb703;">Cuenta Pendiente</h2>
-        <p style="color: #cbd5e1; font-size: 0.95em;">Tu registro fue exitoso. El administrador (GabyMartin) debe autorizar tu acceso para utilizar la aplicación.</p>
-        <button onclick="cerrarSesion()" style="background: linear-gradient(135deg, #e63946, #d62828); margin-top: 15px;">Cerrar Sesión</button>
-    </div>
-
-    <!-- 3. PANEL DE ADMINISTRADOR (SOLICITUDES) -->
-    <div id="admin-panel" class="container" style="display:none; border-color: var(--accent-color);">
-        <h3 style="color: var(--accent-color); margin-top:0;">Panel de Administración - Solicitudes Pendientes</h3>
-        <div id="admin-requests-list">
-            <p style="color: #94a3b8;">Cargando solicitudes...</p>
-        </div>
-        <button onclick="cerrarSesion()" style="background: linear-gradient(135deg, #e63946, #d62828); margin-top:15px; width:auto; padding: 10px 20px;">Cerrar Sesión Admin</button>
-    </div>
-
-    <!-- 3.1. PANEL DE ADMINISTRADOR: SOLAPAS POR USUARIOS Y SUS MESES -->
-    <div id="admin-users-view" class="container" style="display:none; border-color: var(--admin-accent);">
-        <h3 style="color: var(--admin-accent); margin-top:0;">Gestión de Planillas de Personal (Vista Admin)</h3>
-        
-        <p style="font-size: 0.85em; color: #94a3b8; margin-bottom: 6px;">1. Selecciona un usuario registrado:</p>
-        <div id="admin-users-tabs" class="tabs-container"></div>
-
-        <p style="font-size: 0.85em; color: #94a3b8; margin-top: 15px; margin-bottom: 6px;">2. Meses guardados del usuario:</p>
-        <div id="admin-months-tabs" class="tabs-container">
-            <span style="font-size:0.85em; color:#64748b;">Selecciona un usuario para ver sus meses.</span>
-        </div>
-    </div>
-
-    <!-- 4. APLICACIÓN PRINCIPAL (PLANILLA DE SERVICIOS) -->
-    <div class="container" id="main-app" style="display:none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <span id="user-display-info" style="font-size: 0.9em; font-weight: 600; color: var(--accent-color);"></span>
-            <button onclick="cerrarSesion()" style="width: auto; padding: 6px 14px; margin: 0; background: rgba(255,255,255,0.1); font-size: 0.8em; box-shadow: none;">Salir</button>
-        </div>
-
-        <div class="form-header">
-            <div><label>MES</label><input type="text" id="in-mes" placeholder="Ej: MAYO"></div>
-            <div><label>GRADO</label><input type="text" id="in-grado" placeholder="Grado del personal"></div>
-            <div><label>NOMBRE Y APELLIDO</label><input type="text" id="in-nombre" placeholder="Nombre completo"></div>
-        </div>
-
-        <div class="days-grid" id="main-grid"></div>
-
-        <div class="total-section">
-            <span style="letter-spacing: 0.5px;">CANTIDAD TOTAL HORAS DE ADICIONAL:</span>
-            <span id="total-final">0.0</span>
-        </div>
-
-        <!-- RECUADRO DE FIRMA DIGITAL -->
-        <div class="signature-section">
-            <h4>Firma Suboficial</h4>
-            <div class="signature-container">
-                <canvas id="sig-canvas" width="400" height="150"></canvas>
-                <div class="sig-controls">
-                    <button class="sig-btn" onclick="limpiarFirma()">Limpiar Trazo</button>
-                    <button class="sig-btn" onclick="document.getElementById('sig-file-input').click()">Subir Imagen</button>
-                    <input type="file" id="sig-file-input" accept="image/*" style="display:none;" onchange="cargarImagenFirma(event)">
-                </div>
-            </div>
-        </div>
-
-        <div style="display: flex; gap: 12px; margin-top: 20px;">
-            <button onclick="guardarPlanilla()" style="background: linear-gradient(135deg, #2b9348, #55a630); flex: 1; box-shadow: 0 4px 12px rgba(43, 147, 72, 0.3);">Guardar / Actualizar Planilla</button>
-            <button onclick="imprimirPlanillaActual()" style="background: linear-gradient(135deg, var(--secondary-accent), var(--accent-hover)); flex: 1;">Imprimir / Generar PDF</button>
-        </div>
-
-        <!-- SOLAPAS DE MESES GUARDADOS (VISTA USUARIO) -->
-        <div id="user-months-section" style="margin-top:25px; border-top: 1px solid var(--border-color); padding-top: 18px;">
-            <h4 style="margin: 0 0 10px 0; color: var(--accent-color); font-weight: 600;">Tus Planillas Guardadas por Mes:</h4>
-            <div id="user-months-tabs" class="tabs-container">
-                <span style="font-size: 0.85em; color: #64748b;">Cargando planillas...</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- ÁREA DE IMPRESIÓN -->
-    <div id="printable-area">
-        <div class="p-header">
-            <span id="p-mes">MES: </span>
-            <span id="p-grado">GRADO: </span>
-            <span id="p-nombre">APELLIDO Y NOMBRE: </span>
-        </div>
-        <table id="p-table"></table>
-        <div class="p-footer">
-            <strong>CANTIDAD TOTAL HORAS DE ADICIONAL: <span id="p-total" style="border-bottom: 1px solid black; padding: 0 30px;">0.0</span></strong>
-            <p style="margin-top:10px;">*Se deberá completar todos los campos con la siguiente información:</p>
-            <p>G - Guardia | L/A, L/M - Licencia Anual, médica o cualquier otra licencia | C - Comisión | A - Adicional con horario | FRANCO.</p>
-            <div class="p-sigs">
-                <div class="p-sig-box">
-                    <img id="p-sig-suboficial" class="p-sig-img" alt="Firma Suboficial">
-                    FIRMA SUBOFICIAL
-                </div>
-                <div class="p-sig-box">FIRMA Jefe de Serv.</div>
-            </div>
-        </div>
-        <div class="watermark">Powered by GabyMartin</div>
-    </div>
-
-    <!-- SCRIPT DE FIREBASE -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, updateDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBH0YCZAjC4uvvlP0UJB9rbujOhgTLOXNw",
-            authDomain: "control-planillas-adicionales.firebaseapp.com",
-            projectId: "control-planillas-adicionales",
-            storageBucket: "control-planillas-adicionales.firebasestorage.app",
-            messagingSenderId: "486366456041",
-            appId: "1:486366456041:web:c4e59f91e10ffcc174a878"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        window.firebaseAuth = {
-            auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, doc, setDoc, getDoc, updateDoc, updateProfile, onSnapshot, collection, getDocs, query, where, onAuthStateChanged
-        };
-    </script>
-
-    <script>
-        let currentUserData = null;
-        let activeTargetUid = null;
-        let activeUserEmail = "";
-
-        // LÓGICA DEL CANVAS DE FIRMA DIGITAL
-        let canvas, ctx, isDrawing = false;
-        let currentSignatureData = "";
-
-        function initSignatureCanvas() {
-            canvas = document.getElementById('sig-canvas');
-            ctx = canvas.getContext('2d');
-
-            ctx.strokeStyle = "#000000";
-            ctx.lineWidth = 2;
-            ctx.lineCap = "round";
-
-            // Eventos Táctiles (Pantallas de Móviles/Tablets)
-            canvas.addEventListener('touchstart', (e) => {
-                isDrawing = true;
-                const pos = getPos(e);
-                ctx.beginPath();
-                ctx.moveTo(pos.x, pos.y);
-                e.preventDefault();
-            });
-
-            canvas.addEventListener('touchmove', (e) => {
-                if (!isDrawing) return;
-                const pos = getPos(e);
-                ctx.lineTo(pos.x, pos.y);
-                ctx.stroke();
-                e.preventDefault();
-            });
-
-            canvas.addEventListener('touchend', () => {
-                if (isDrawing) {
-                    isDrawing = false;
-                    saveCanvasData();
-                }
-            });
-
-            // Eventos de Mouse (Computadora)
-            canvas.addEventListener('mousedown', (e) => {
-                isDrawing = true;
-                const pos = getPos(e);
-                ctx.beginPath();
-                ctx.moveTo(pos.x, pos.y);
-            });
-
-            canvas.addEventListener('mousemove', (e) => {
-                if (!isDrawing) return;
-                const pos = getPos(e);
-                ctx.lineTo(pos.x, pos.y);
-                ctx.stroke();
-            });
-
-            canvas.addEventListener('mouseup', () => {
-                if (isDrawing) {
-                    isDrawing = false;
-                    saveCanvasData();
-                }
-            });
-
-            canvas.addEventListener('mouseleave', () => {
-                if (isDrawing) {
-                    isDrawing = false;
-                    saveCanvasData();
-                }
-            });
-        }
-
-        function getPos(evt) {
-            const rect = canvas.getBoundingClientRect();
-            let clientX = evt.clientX;
-            let clientY = evt.clientY;
-
-            if (evt.touches && evt.touches.length > 0) {
-                clientX = evt.touches[0].clientX;
-                clientY = evt.touches[0].clientY;
-            }
-
-            return {
-                x: (clientX - rect.left) * (canvas.width / rect.width),
-                y: (clientY - rect.top) * (canvas.height / rect.height)
-            };
-        }
-
-        function saveCanvasData() {
-            currentSignatureData = canvas.toDataURL('image/png');
-        }
-
-        window.limpiarFirma = function() {
-            if (!ctx) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            currentSignatureData = "";
-            document.getElementById('sig-file-input').value = "";
-        }
-
-        window.cargarImagenFirma = function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    
-                    // Escalar imagen proporcionalmente dentro del lienzo
-                    const hRatio = canvas.width / img.width;
-                    const vRatio = canvas.height / img.height;
-                    const ratio = Math.min(hRatio, vRatio);
-                    const centerShiftX = (canvas.width - img.width * ratio) / 2;
-                    const centerShiftY = (canvas.height - img.height * ratio) / 2;
-
-                    ctx.drawImage(img, 0, 0, img.width, img.height, centerShiftX, centerShiftY, img.width * ratio, img.height * ratio);
-                    saveCanvasData();
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        window.toggleAuthMode = function(isRegister) {
-            document.getElementById('login-form').style.display = isRegister ? 'none' : 'block';
-            document.getElementById('register-form').style.display = isRegister ? 'block' : 'none';
-        }
-
-        window.handleRegister = async function() {
-            const nombre = document.getElementById('reg-nombre').value;
-            const emailRaw = document.getElementById('reg-email').value;
-            const password = document.getElementById('reg-password').value;
-            const { auth, db, createUserWithEmailAndPassword, setDoc, doc, updateProfile } = window.firebaseAuth;
-
-            if(!nombre || !emailRaw || !password) {
-                alert("Por favor completa todos los campos.");
-                return;
-            }
-
-            const email = emailRaw.toLowerCase().trim();
-
-            try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                
-                await updateProfile(user, { displayName: nombre });
-
-                const isAdmin = (email === 'gabymartin267@gmail.com');
-
-                await setDoc(doc(db, "users", user.uid), {
-                    uid: user.uid,
-                    nombreCompleto: nombre,
-                    email: email,
-                    role: isAdmin ? "admin" : "user",
-                    status: isAdmin ? "approved" : "pending",
-                    createdAt: new Date()
-                });
-
-                if(isAdmin) {
-                    alert("¡Bienvenido Admin GabyMartin!");
-                } else {
-                    alert("Registro exitoso. Espera a que el administrador autorice tu acceso.");
-                }
-            } catch (error) {
-                alert("Error en el registro: " + error.message);
-            }
-        }
-
-        window.handleLogin = async function() {
-            const email = document.getElementById('login-email').value.trim();
-            const password = document.getElementById('login-password').value;
-            const { auth, signInWithEmailAndPassword } = window.firebaseAuth;
-
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-            } catch (error) {
-                alert("Error al iniciar sesión: Verifique sus datos o contraseña.");
-            }
-        }
-
-        window.cerrarSesion = function() {
-            const { auth, signOut } = window.firebaseAuth;
-            signOut(auth);
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            initSignatureCanvas();
-
-            const checkFirebaseInterval = setInterval(() => {
-                if (window.firebaseAuth) {
-                    clearInterval(checkFirebaseInterval);
-                    const { auth, db, doc, getDoc, updateDoc, onAuthStateChanged } = window.firebaseAuth;
-                    
-                    onAuthStateChanged(auth, async (user) => {
-                        const authContainer = document.getElementById('auth-container');
-                        const pendingContainer = document.getElementById('pending-container');
-                        const adminPanel = document.getElementById('admin-panel');
-                        const adminUsersView = document.getElementById('admin-users-view');
-                        const mainApp = document.getElementById('main-app');
-
-                        if (user) {
-                            const userDocRef = doc(db, "users", user.uid);
-                            const userSnap = await getDoc(userDocRef);
-
-                            if (userSnap.exists()) {
-                                currentUserData = userSnap.data();
-                                authContainer.style.display = 'none';
-
-                                const userEmail = currentUserData.email ? currentUserData.email.toLowerCase() : user.email.toLowerCase();
-
-                                if (userEmail === 'gabymartin267@gmail.com' && currentUserData.role !== 'admin') {
-                                    await updateDoc(userDocRef, { role: 'admin', status: 'approved' });
-                                    currentUserData.role = 'admin';
-                                    currentUserData.status = 'approved';
-                                }
-
-                                if (currentUserData.role === 'admin') {
-                                    adminPanel.style.display = 'block';
-                                    adminUsersView.style.display = 'block';
-                                    mainApp.style.display = 'block';
-                                    document.getElementById('user-display-info').innerText = `Admin: ${currentUserData.nombreCompleto || 'GabyMartin'}`;
-                                    document.getElementById('user-months-section').style.display = 'none';
-                                    
-                                    activeTargetUid = user.uid;
-                                    activeUserEmail = userEmail;
-                                    escucharSolicitudesPendientes();
-                                    cargarUsuariosAdminTabs();
-                                } else if (currentUserData.status === 'approved') {
-                                    pendingContainer.style.display = 'none';
-                                    adminPanel.style.display = 'none';
-                                    adminUsersView.style.display = 'none';
-                                    mainApp.style.display = 'block';
-                                    document.getElementById('user-months-section').style.display = 'block';
-                                    document.getElementById('user-display-info').innerText = `Usuario: ${currentUserData.nombreCompleto}`;
-                                    
-                                    activeTargetUid = user.uid;
-                                    activeUserEmail = userEmail;
-                                    document.getElementById('in-nombre').value = currentUserData.nombreCompleto;
-                                    document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + currentUserData.nombreCompleto;
-                                    
-                                    cargarSolapasMesesUsuario(user.uid, userEmail);
-                                } else {
-                                    pendingContainer.style.display = 'block';
-                                    adminPanel.style.display = 'none';
-                                    adminUsersView.style.display = 'none';
-                                    mainApp.style.display = 'none';
-                                }
-                            }
-                        } else {
-                            authContainer.style.display = 'block';
-                            pendingContainer.style.display = 'none';
-                            adminPanel.style.display = 'none';
-                            adminUsersView.style.display = 'none';
-                            mainApp.style.display = 'none';
-                        }
-                    });
-                }
-            }, 200);
-        });
-
-        function escucharSolicitudesPendientes() {
-            const { db, collection, onSnapshot } = window.firebaseAuth;
-            const listContainer = document.getElementById('admin-requests-list');
-
-            onSnapshot(collection(db, "users"), (snapshot) => {
-                let html = "";
-                const emailsVistos = new Set();
-
-                snapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    const mailNorm = data.email ? data.email.toLowerCase() : '';
-                    if (data.status === 'pending' && !emailsVistos.has(mailNorm)) {
-                        emailsVistos.add(mailNorm);
-                        html += `
-                            <div style="background: var(--input-bg); padding:12px; margin-bottom:8px; border-radius:6px; border:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
-                                <span><b>${data.nombreCompleto}</b> (${data.email})</span>
-                                <button onclick="aprobarUsuario('${data.uid}')" style="width:auto; padding:6px 14px; margin:0; background:linear-gradient(135deg, #2b9348, #55a630);">Autorizar</button>
-                            </div>
-                        `;
-                    }
-                });
-                listContainer.innerHTML = html || "<p style='color:#94a3b8;'>No hay solicitudes pendientes en este momento.</p>";
-            });
-        }
-
-        window.aprobarUsuario = async function(uid) {
-            const { db, doc, updateDoc } = window.firebaseAuth;
-            try {
-                await updateDoc(doc(db, "users", uid), { status: "approved" });
-                alert("Usuario autorizado correctamente.");
-                cargarUsuariosAdminTabs();
-            } catch (error) {
-                alert("Error al autorizar: " + error.message);
-            }
-        }
-
-        async function cargarUsuariosAdminTabs() {
-            const { db, collection, getDocs } = window.firebaseAuth;
-            const container = document.getElementById('admin-users-tabs');
-            const snapshot = await getDocs(collection(db, "users"));
-
-            let html = "";
-            const emailsAgregados = new Set();
-
-            snapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                const mailNorm = data.email ? data.email.toLowerCase() : '';
-
-                if(data.status === 'approved' && !emailsAgregados.has(mailNorm)) {
-                    emailsAgregados.add(mailNorm);
-                    const safeEmailId = mailNorm.replace(/[^a-zA-Z0-9]/g, '_');
-                    html += `<button class="tab-btn admin-user-tab" id="btn-user-${safeEmailId}" onclick="seleccionarUsuarioAdmin('${data.uid}', '${mailNorm}', '${safeEmailId}')">${data.nombreCompleto}</button>`;
-                }
-            });
-            container.innerHTML = html || "<span style='color:#64748b;'>No hay usuarios autorizados.</span>";
-        }
-
-        window.seleccionarUsuarioAdmin = function(uid, email, safeEmailId) {
-            document.querySelectorAll('.admin-user-tab').forEach(btn => btn.classList.remove('active'));
-            const activeBtn = document.getElementById(`btn-user-${safeEmailId}`);
-            if(activeBtn) activeBtn.classList.add('active');
-
-            activeTargetUid = uid;
-            activeUserEmail = email;
-            cargarSolapasMesesAdmin(uid, email);
-        }
-
-        async function cargarSolapasMesesAdmin(uid, email) {
-            const { db, collection, getDocs } = window.firebaseAuth;
-            const container = document.getElementById('admin-months-tabs');
-
-            const snapshot = await getDocs(collection(db, "planillas"));
-            let planillasEncontradas = [];
-
-            snapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                if (data.userEmail === email || data.uid === uid) {
-                    planillasEncontradas.push({ id: docSnap.id, ...data });
-                }
-            });
-
-            if(planillasEncontradas.length === 0) {
-                container.innerHTML = "<span style='font-size:0.85em; color:#64748b;'>Este usuario no tiene planillas guardadas aún.</span>";
-                limpiarFormulario();
-                return;
-            }
-
-            let html = "";
-            planillasEncontradas.forEach((pData) => {
-                const mesNombre = pData.mes || pData.mesKey || "Sin Mes";
-                html += `<button class="tab-btn admin-month-tab" id="btn-admin-m-${pData.id}" onclick="cargarMesEspecificoPorId('${pData.id}', 'admin')">${mesNombre}</button>`;
-            });
-
-            container.innerHTML = html;
-            cargarMesEspecificoPorId(planillasEncontradas[0].id, 'admin');
-        }
-
-        async function cargarSolapasMesesUsuario(uid, email) {
-            const { db, collection, onSnapshot } = window.firebaseAuth;
-            const container = document.getElementById('user-months-tabs');
-
-            onSnapshot(collection(db, "planillas"), (snapshot) => {
-                let planillasEncontradas = [];
-
-                snapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    if (data.userEmail === email || data.uid === uid) {
-                        planillasEncontradas.push({ id: docSnap.id, ...data });
-                    }
-                });
-
-                if(planillasEncontradas.length === 0) {
-                    container.innerHTML = "<span style='font-size:0.85em; color:#64748b;'>No tienes planillas guardadas aún. Completa el formulario y presiona 'Guardar'.</span>";
-                    return;
-                }
-
-                let html = "";
-                planillasEncontradas.forEach((pData) => {
-                    const mesNombre = pData.mes || pData.mesKey || "Sin Mes";
-                    html += `<button class="tab-btn user-month-tab" id="btn-user-m-${pData.id}" onclick="cargarMesEspecificoPorId('${pData.id}', 'user')">${mesNombre}</button>`;
-                });
-
-                container.innerHTML = html;
-            });
-        }
-
-        async function cargarMesEspecificoPorId(docId, context) {
-            const { db, doc, getDoc } = window.firebaseAuth;
-
-            const planSnap = await getDoc(doc(db, "planillas", docId));
-            if(planSnap.exists()) {
-                const pData = planSnap.data();
-
-                const tabClass = context === 'admin' ? '.admin-month-tab' : '.user-month-tab';
-                document.querySelectorAll(tabClass).forEach(btn => btn.classList.remove('active'));
-                const btnActivo = document.getElementById(context === 'admin' ? `btn-admin-m-${docId}` : `btn-user-m-${docId}`);
-                if(btnActivo) btnActivo.classList.add('active');
-
-                document.getElementById('in-mes').value = pData.mes || '';
-                document.getElementById('p-mes').innerText = "MES: " + (pData.mes || '');
-                
-                document.getElementById('in-grado').value = pData.grado || '';
-                document.getElementById('p-grado').innerText = "GRADO: " + (pData.grado || '');
-
-                document.getElementById('in-nombre').value = pData.nombre || '';
-                document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + (pData.nombre || '');
-
-                limpiarChecksYTiempos();
-
-                if(pData.dias) {
-                    for(let i = 1; i <= 31; i++) {
-                        const dayInfo = pData.dias[i];
-                        if(dayInfo) {
-                            if(dayInfo.checked) {
-                                dayInfo.checked.forEach(val => {
-                                    const cb = document.querySelector(`.chk-day-${i}[value="${val}"]`);
-                                    if(cb) cb.checked = true;
-                                });
-                            }
-                            if(dayInfo.start) document.getElementById(`start-${i}`).value = dayInfo.start;
-                            if(dayInfo.end) document.getElementById(`end-${i}`).value = dayInfo.end;
-                            
-                            window.handleOptionChange(i);
-                        }
-                    }
-                }
-
-                // Cargar firma si fue previamente guardada
-                limpiarFirma();
-                if (pData.firma) {
-                    currentSignatureData = pData.firma;
-                    const img = new Image();
-                    img.onload = function() {
-                        ctx.drawImage(img, 0, 0);
-                    };
-                    img.src = pData.firma;
-                }
-
-                calculateHours();
-            }
-        }
-
-        function limpiarFormulario() {
-            document.getElementById('in-mes').value = '';
-            document.getElementById('in-grado').value = '';
-            limpiarChecksYTiempos();
-            limpiarFirma();
-            calculateHours();
-        }
-
-        function limpiarChecksYTiempos() {
-            for(let i = 1; i <= 31; i++) {
-                document.querySelectorAll(`.chk-day-${i}`).forEach(cb => cb.checked = false);
-                document.getElementById(`start-${i}`).value = '';
-                document.getElementById(`end-${i}`).value = '';
-                document.getElementById(`time-box-${i}`).style.display = 'none';
-            }
-        }
-
-        const grid = document.getElementById('main-grid');
-        const optionsMap = {
-            "G": "Guardia",
-            "L/A": "Licencia Anual",
-            "L/M": "Licencia Médica",
-            "C": "Comisión",
-            "A": "Adicional",
-            "F": "Franco"
-        };
-
-        for (let i = 1; i <= 31; i++) {
-            const div = document.createElement('div');
-            div.className = 'day-card';
-            
-            let optionsHTML = '';
-            Object.keys(optionsMap).forEach(key => {
-                optionsHTML += `
-                    <label>
-                        <input type="checkbox" class="chk-day-${i}" value="${key}" onchange="handleOptionChange(${i})">
-                        ${optionsMap[key]}
-                    </label>
-                `;
-            });
-
-            div.innerHTML = `
-                <span class="day-label">DÍA ${i}</span>
-                <div class="checkbox-group">
-                    ${optionsHTML}
-                </div>
-                <div id="time-box-${i}" class="time-inputs">
-                    <label>Inicio:</label>
-                    <input type="time" id="start-${i}" onchange="calculateHours()">
-                    <label>Fin:</label>
-                    <input type="time" id="end-${i}" onchange="calculateHours()">
-                </div>
-            `;
-            grid.appendChild(div);
-        }
-
-        window.handleOptionChange = function(dia) {
-            const checkboxes = document.querySelectorAll(`.chk-day-${dia}:checked`);
-            let hasAdicional = false;
-            
-            checkboxes.forEach(chk => {
-                if (chk.value === 'A') hasAdicional = true;
-            });
-
-            const timeBox = document.getElementById(`time-box-${dia}`);
-            timeBox.style.display = hasAdicional ? 'flex' : 'none';
-
-            calculateHours();
-        }
-
-        window.calculateHours = function() {
-            let totalGlobal = 0;
-
-            for (let i = 1; i <= 31; i++) {
-                const checkedBoxes = document.querySelectorAll(`.chk-day-${i}:checked`);
-                const start = document.getElementById(`start-${i}`).value;
-                const end = document.getElementById(`end-${i}`).value;
-                const pContent = document.getElementById(`p-content-${i}`);
-
-                let dayTexts = [];
-
-                checkedBoxes.forEach(chk => {
-                    const val = chk.value;
-
-                    if (val === 'A') {
-                        if (start && end) {
-                            let s = start.split(':');
-                            let e = end.split(':');
-                            let startDate = new Date(0, 0, 0, s[0], s[1], 0);
-                            let endDate = new Date(0, 0, 0, e[0], e[1], 0);
-                            let diff = (endDate - startDate) / 1000 / 60 / 60;
-                            if (diff < 0) diff += 24; 
-                            
-                            totalGlobal += diff;
-                            dayTexts.push(`ADICIONAL (${start} a ${end})`);
-                        } else {
-                            dayTexts.push(`ADICIONAL`);
-                        }
-                    } else {
-                        dayTexts.push(optionsMap[val]);
-                    }
-                });
-                
-                if (pContent) {
-                    pContent.innerHTML = dayTexts.join('<br>');
-                }
-            }
-
-            document.getElementById('total-final').innerText = totalGlobal.toFixed(1);
-            document.getElementById('p-total').innerText = totalGlobal.toFixed(1);
-        }
-
-        window.guardarPlanilla = async function() {
-            if(!activeUserEmail && !activeTargetUid) return;
-            const { db, doc, setDoc } = window.firebaseAuth;
-
-            const mesRaw = document.getElementById('in-mes').value.trim();
-            if(!mesRaw) {
-                alert("Por favor ingresa el MES de la planilla antes de guardar.");
-                return;
-            }
-
-            const mesKey = mesRaw.toUpperCase().replace(/\s+/g, '_');
-            const safeEmailId = (activeUserEmail || activeTargetUid).replace(/[^a-zA-Z0-9]/g, '_');
-            const docId = `${safeEmailId}_${mesKey}`;
-
-            const grado = document.getElementById('in-grado').value;
-            const nombre = document.getElementById('in-nombre').value;
-
-            let diasData = {};
-            for(let i = 1; i <= 31; i++) {
-                const checked = Array.from(document.querySelectorAll(`.chk-day-${i}:checked`)).map(cb => cb.value);
-                const start = document.getElementById(`start-${i}`).value;
-                const end = document.getElementById(`end-${i}`).value;
-                
-                diasData[i] = { checked, start, end };
-            }
-
-            try {
-                await setDoc(doc(db, "planillas", docId), {
-                    docId: docId,
-                    uid: activeTargetUid,
-                    userEmail: activeUserEmail,
-                    mes: mesRaw.toUpperCase(),
-                    mesKey: mesKey,
-                    grado,
-                    nombre,
-                    dias: diasData,
-                    firma: currentSignatureData,
-                    ultimaActualizacion: new Date()
-                }, { merge: true });
-
-                alert(`¡Planilla correspondiente a ${mesRaw.toUpperCase()} guardada exitosamente!`);
-                
-                if(currentUserData.role === 'admin') {
-                    cargarSolapasMesesAdmin(activeTargetUid, activeUserEmail);
-                } else {
-                    cargarSolapasMesesUsuario(activeTargetUid, activeUserEmail);
-                }
-            } catch (error) {
-                alert("Error al guardar la planilla: " + error.message);
-            }
-        }
-
-        window.imprimirPlanillaActual = function() {
-            document.getElementById('p-mes').innerText = "MES: " + document.getElementById('in-mes').value;
-            document.getElementById('p-grado').innerText = "GRADO: " + document.getElementById('in-grado').value;
-            document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + document.getElementById('in-nombre').value;
-
-            // Actualizar la firma en la vista de impresión
-            const sigImg = document.getElementById('p-sig-suboficial');
-            if (currentSignatureData) {
-                sigImg.src = currentSignatureData;
-                sigImg.style.display = 'block';
-            } else {
-                sigImg.style.display = 'none';
-            }
-
-            window.print();
-        }
-
-        const pTable = document.getElementById('p-table');
-        let dayAcc = 1;
-        for (let r = 0; r < 5; r++) {
-            let tr = document.createElement('tr');
-            for (let c = 0; c < 7; c++) {
-                let td = document.createElement('td');
-                if (dayAcc <= 31) {
-                    td.innerHTML = `<span class="p-day-num">${dayAcc}</span><div class="p-day-content" id="p-content-${dayAcc}"></div>`;
-                    dayAcc++;
-                }
-                tr.appendChild(td);
-            }
-            pTable.appendChild(tr);
-        }
-
-        document.getElementById('in-mes').oninput = e => document.getElementById('p-mes').innerText = "MES: " + e.target.value;
-        document.getElementById('in-grado').oninput = e => document.getElementById('p-grado').innerText = "GRADO: " + e.target.value;
-        document.getElementById('in-nombre').oninput = e => document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + e.target.value;
-    </script>
+  </div>
+
+  <footer>
+    Powered by GabyMartin
+  </footer>
+
+  <script>
+    // Configuración de Supabase (reemplazar con tus credenciales si corresponden)
+    const SUPABASE_URL = 'https://TU_SUPABASE_URL.supabase.co';
+    const SUPABASE_KEY = 'TU_SUPABASE_ANON_KEY';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const form = document.getElementById('registroForm');
+    const tablaCuerpo = document.getElementById('tablaCuerpo');
+
+    // Cargar datos al iniciar
+    document.addEventListener('DOMContentLoaded', cargarDatos);
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const nuevoRegistro = {
+        fecha: document.getElementById('fecha').value,
+        personal: document.getElementById('personal').value,
+        movil: document.getElementById('movil').value,
+        grupo: document.getElementById('grupo').value
+      };
+
+      const { data, error } = await supabase
+        .from('planillas')
+        .insert([nuevoRegistro]);
+
+      if (error) {
+        console.error('Error al guardar:', error);
+        alert('Error al guardar el registro');
+      } else {
+        form.reset();
+        cargarDatos();
+      }
+    });
+
+    async function cargarDatos() {
+      const { data, error } = await supabase
+        .from('planillas')
+        .select('*')
+        .order('fecha', { ascending: false });
+
+      if (error) {
+        console.error('Error al obtener datos:', error);
+        return;
+      }
+
+      tablaCuerpo.innerHTML = '';
+      data.forEach(item => {
+        const fila = document.createElement('tr');
+        fila.innerHTML = `
+          <td>${item.fecha || ''}</td>
+          <td>${item.personal || ''}</td>
+          <td>${item.movil || ''}</td>
+          <td>${item.grupo || ''}</td>
+        `;
+        tablaCuerpo.appendChild(fila);
+      });
+    }
+  </script>
 </body>
 </html>
