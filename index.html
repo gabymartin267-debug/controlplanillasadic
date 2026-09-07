@@ -4,23 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Planilla de Servicios - Powered by GabyMartin</title>
+    <!-- Configuración PWA para Android e iOS -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00d2ff">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Planilla Servicios">
+
     <style>
         :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-color: #e0e0e0;
-            --accent-color: #00adb5;
-            --border-color: #333;
+            /* PALETA MODO OSCURO: AZUL MARINO A CELESTE */
+            --bg-color: #0b132b;          /* Azul Marino Muy Oscuro / Noche */
+            --card-bg: #1c2541;          /* Azul Marino Profundo para tarjetas */
+            --input-bg: #0b132b;         /* Fondo de inputs */
+            --text-color: #e0f2fe;        /* Celeste helado muy claro para texto */
+            --accent-color: #00d2ff;      /* Celeste Neón / Cyan brillante */
+            --accent-hover: #00a8e8;      /* Celeste Intenso hover */
+            --secondary-accent: #3a86ff; /* Azul Cobalto / Eléctrico */
+            --border-color: #2a3a5e;     /* Borde azulado sutil */
+            --admin-accent: #38ef7d;     /* Verde de confirmación/admin */
         }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background-color: var(--bg-color);
+            background-image: radial-gradient(circle at top, #1c2541 0%, #0b132b 100%);
             color: var(--text-color);
             padding: 20px;
+            margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
+            min-height: 100vh;
+        }
+
+        h2, h3, h4 {
+            color: #ffffff;
+            letter-spacing: 0.5px;
         }
 
         .container {
@@ -28,136 +49,198 @@
             max-width: 1100px;
             background: var(--card-bg);
             padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
         }
 
         .form-header {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
             margin-bottom: 25px;
         }
 
-        input, select {
-            padding: 8px;
-            background: #2a2a2a;
+        .form-header label {
+            font-size: 0.8em;
+            font-weight: 600;
+            color: var(--accent-color);
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        input[type="text"], input[type="password"], input[type="email"], input[type="time"] {
+            padding: 10px 12px;
+            background: var(--input-bg);
             border: 1px solid var(--border-color);
-            color: white;
-            border-radius: 4px;
+            color: #ffffff;
+            border-radius: 6px;
             width: 100%;
             box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus, input[type="time"]:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 8px rgba(0, 210, 255, 0.3);
         }
 
         .days-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 12px;
         }
 
         .day-card {
             border: 1px solid var(--border-color);
-            padding: 10px;
-            border-radius: 4px;
-            background: #252525;
+            padding: 12px;
+            border-radius: 8px;
+            background: rgba(11, 19, 43, 0.6);
+            transition: transform 0.2s ease, border-color 0.2s ease;
         }
 
-        .day-label { color: var(--accent-color); font-weight: bold; font-size: 0.8em; margin-bottom: 5px; display: block; }
+        .day-card:hover {
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+        }
+
+        .day-label { 
+            color: var(--accent-color); 
+            font-weight: 700; 
+            font-size: 0.85em; 
+            margin-bottom: 10px; 
+            display: block; 
+            letter-spacing: 0.5px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.82em;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: #cbd5e1;
+            transition: color 0.2s ease;
+        }
+
+        .checkbox-group label:hover {
+            color: #ffffff;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            cursor: pointer;
+            accent-color: var(--accent-color);
+            width: 15px;
+            height: 15px;
+        }
 
         .time-inputs {
-            margin-top: 8px;
+            margin-top: 10px;
             display: none;
             flex-direction: column;
-            gap: 5px;
+            gap: 6px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 8px;
         }
 
-        .time-inputs label { font-size: 0.7em; color: #888; }
+        .time-inputs label { font-size: 0.72em; color: #94a3b8; }
 
         .total-section {
             margin-top: 25px;
-            padding: 15px;
-            border-top: 2px solid var(--accent-color);
+            padding: 18px;
+            border: 1px solid var(--border-color);
+            background: rgba(0, 210, 255, 0.05);
+            border-radius: 8px;
             font-weight: bold;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        #total-final { font-size: 1.5em; color: var(--accent-color); }
-
-        /* SECCIÓN DE FIRMA DIGITAL */
-        .signature-section {
-            margin-top: 25px;
-            padding: 15px;
-            background: #252525;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
+        #total-final { 
+            font-size: 1.8em; 
+            color: var(--accent-color); 
+            text-shadow: 0 0 10px rgba(0, 210, 255, 0.4);
         }
 
-        .signature-section h3 {
-            margin-top: 0;
-            color: var(--accent-color);
-            font-size: 1em;
-        }
-
-        .signature-controls {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .signature-pad-container {
-            position: relative;
-            width: 100%;
-            max-width: 400px;
-            height: 150px;
-            background: #fff;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        canvas {
-            width: 100%;
-            height: 100%;
-            cursor: crosshair;
-            touch-action: none;
-        }
-
-        .btn-secondary {
-            background: #444;
-            color: white;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85em;
-            margin-top: 5px;
-        }
-
-        .btn-secondary:hover {
-            background: #555;
-        }
-
-        button.btn-main {
+        button {
             margin-top: 20px;
             width: 100%;
-            padding: 15px;
-            background: var(--accent-color);
-            color: white;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, var(--secondary-accent), var(--accent-hover));
+            color: #ffffff;
             border: none;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
-            border-radius: 4px;
-            font-size: 1em;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 168, 232, 0.3);
         }
 
-        /* CONFIGURACIÓN DE IMPRESIÓN */
+        button:hover { 
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 210, 255, 0.4);
+            opacity: 0.95;
+        }
+
+        .tabs-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
+        .tab-btn {
+            background: var(--input-bg);
+            color: #94a3b8;
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: auto;
+            margin-top: 0;
+            font-size: 0.88em;
+            box-shadow: none;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            background: #2a3a5e;
+            color: #ffffff;
+        }
+
+        .tab-btn.active {
+            background: var(--accent-color);
+            color: #0b132b;
+            border-color: var(--accent-color);
+            font-weight: 700;
+            box-shadow: 0 0 12px rgba(0, 210, 255, 0.4);
+        }
+
+        .tab-btn.admin-user-tab.active {
+            background: #38ef7d;
+            border-color: #38ef7d;
+            color: #0b132b;
+            box-shadow: 0 0 12px rgba(56, 239, 125, 0.4);
+        }
+
+        /* ÁREA DE IMPRESIÓN LIMPIA Y BLANCA */
         #printable-area { display: none; }
 
         @media print {
-            .container, button { display: none !important; }
+            body { background: white; color: black; padding: 0; }
+            .container, button, #auth-container, #pending-container, #admin-panel, #admin-users-view { display: none !important; }
             #printable-area { 
                 display: block !important; 
                 width: 100%; 
@@ -176,287 +259,647 @@
             }
             .p-day-num { font-weight: bold; float: right; font-size: 12px; }
             .p-day-content { 
-                margin-top: 20px; 
+                margin-top: 16px; 
                 text-align: center; 
-                font-size: 10px; 
+                font-size: 8.5px; 
                 font-weight: bold;
                 text-transform: uppercase;
+                line-height: 1.2;
             }
             .p-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 15px; }
             .p-footer { margin-top: 20px; font-size: 11px; }
-            .p-sigs { display: flex; justify-content: flex-end; gap: 50px; margin-top: 30px; }
-            
-            .p-sig-box-container {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                width: 200px;
-            }
-
-            .p-sig-image-area {
-                height: 60px;
-                width: 100%;
-                display: flex;
-                align-items: flex-end;
-                justify-content: center;
-            }
-
-            .p-sig-image-area img {
-                max-height: 100%;
-                max-width: 100%;
-                object-fit: contain;
-            }
-
-            .p-sig-box { 
-                border-top: 1px solid black; 
-                width: 100%; 
-                text-align: center; 
-                padding-top: 5px; 
-            }
-
+            .p-sigs { display: flex; justify-content: flex-end; gap: 50px; margin-top: 50px; }
+            .p-sig-box { border-top: 1px solid black; width: 200px; text-align: center; padding-top: 5px; }
             .watermark { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: black; font-weight: bold; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="form-header">
-        <div><label>MES</label><input type="text" id="in-mes" placeholder="Ej: MAYO"></div>
-        <div><label>GRADO</label><input type="text" id="in-grado" placeholder="Grado del personal"></div>
-        <div><label>NOMBRE Y APELLIDO</label><input type="text" id="in-nombre" placeholder="Nombre completo"></div>
+    <!-- 1. PANTALLA DE ACCESO / LOGIN Y REGISTRO -->
+    <div id="auth-container" class="container" style="max-width: 400px; text-align: center;">
+        <h2 style="color: var(--accent-color); margin-bottom: 20px;">Control Planillas</h2>
+        
+        <div id="login-form">
+            <input type="email" id="login-email" placeholder="Correo electrónico" style="margin-bottom:12px;">
+            <input type="password" id="login-password" placeholder="Contraseña" style="margin-bottom:12px;">
+            <button onclick="handleLogin()">Ingresar</button>
+            <p style="margin-top:18px; font-size:0.85em; cursor:pointer; color:var(--accent-color);" onclick="toggleAuthMode(true)">¿No tienes cuenta? Regístrate</p>
+        </div>
+
+        <div id="register-form" style="display:none;">
+            <input type="text" id="reg-nombre" placeholder="Nombre y Apellido" style="margin-bottom:12px;">
+            <input type="email" id="reg-email" placeholder="Correo electrónico" style="margin-bottom:12px;">
+            <input type="password" id="reg-password" placeholder="Contraseña" style="margin-bottom:12px;">
+            <button onclick="handleRegister()">Registrarse</button>
+            <p style="margin-top:18px; font-size:0.85em; cursor:pointer; color:var(--accent-color);" onclick="toggleAuthMode(false)">¿Ya tienes cuenta? Inicia sesión</p>
+        </div>
     </div>
 
-    <div class="days-grid" id="main-grid"></div>
-
-    <div class="total-section">
-        CANTIDAD TOTAL HORAS DE ADICIONAL:
-        <span id="total-final">0.0</span>
+    <!-- 2. PANTALLA DE ESPERA -->
+    <div id="pending-container" class="container" style="display:none; max-width: 420px; text-align: center;">
+        <h2 style="color: #ffb703;">Cuenta Pendiente</h2>
+        <p style="color: #cbd5e1; font-size: 0.95em;">Tu registro fue exitoso. El administrador (GabyMartin) debe autorizar tu acceso para utilizar la aplicación.</p>
+        <button onclick="cerrarSesion()" style="background: linear-gradient(135deg, #e63946, #d62828); margin-top: 15px;">Cerrar Sesión</button>
     </div>
 
-    <!-- RECUADRO DE FIRMA DIGITAL O ARCHIVO -->
-    <div class="signature-section">
-        <h3>Firma de Suboficial</h3>
-        <div class="signature-controls">
-            <div>
-                <label style="font-size: 0.8em; color: #aaa;">Subir imagen de firma:</label>
-                <input type="file" id="sig-file" accept="image/*" onchange="loadSignatureImage(event)">
+    <!-- 3. PANEL DE ADMINISTRADOR (SOLICITUDES) -->
+    <div id="admin-panel" class="container" style="display:none; border-color: var(--accent-color);">
+        <h3 style="color: var(--accent-color); margin-top:0;">Panel de Administración - Solicitudes Pendientes</h3>
+        <div id="admin-requests-list">
+            <p style="color: #94a3b8;">Cargando solicitudes...</p>
+        </div>
+        <button onclick="cerrarSesion()" style="background: linear-gradient(135deg, #e63946, #d62828); margin-top:15px; width:auto; padding: 10px 20px;">Cerrar Sesión Admin</button>
+    </div>
+
+    <!-- 3.1. PANEL DE ADMINISTRADOR: SOLAPAS POR USUARIOS Y SUS MESES -->
+    <div id="admin-users-view" class="container" style="display:none; border-color: var(--admin-accent);">
+        <h3 style="color: var(--admin-accent); margin-top:0;">Gestión de Planillas de Personal (Vista Admin)</h3>
+        
+        <p style="font-size: 0.85em; color: #94a3b8; margin-bottom: 6px;">1. Selecciona un usuario registrado:</p>
+        <div id="admin-users-tabs" class="tabs-container"></div>
+
+        <p style="font-size: 0.85em; color: #94a3b8; margin-top: 15px; margin-bottom: 6px;">2. Meses guardados del usuario:</p>
+        <div id="admin-months-tabs" class="tabs-container">
+            <span style="font-size:0.85em; color:#64748b;">Selecciona un usuario para ver sus meses.</span>
+        </div>
+    </div>
+
+    <!-- 4. APLICACIÓN PRINCIPAL (PLANILLA DE SERVICIOS) -->
+    <div class="container" id="main-app" style="display:none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <span id="user-display-info" style="font-size: 0.9em; font-weight: 600; color: var(--accent-color);"></span>
+            <button onclick="cerrarSesion()" style="width: auto; padding: 6px 14px; margin: 0; background: rgba(255,255,255,0.1); font-size: 0.8em; box-shadow: none;">Salir</button>
+        </div>
+
+        <div class="form-header">
+            <div><label>MES</label><input type="text" id="in-mes" placeholder="Ej: MAYO"></div>
+            <div><label>GRADO</label><input type="text" id="in-grado" placeholder="Grado del personal"></div>
+            <div><label>NOMBRE Y APELLIDO</label><input type="text" id="in-nombre" placeholder="Nombre completo"></div>
+        </div>
+
+        <div class="days-grid" id="main-grid"></div>
+
+        <div class="total-section">
+            <span style="letter-spacing: 0.5px;">CANTIDAD TOTAL HORAS DE ADICIONAL:</span>
+            <span id="total-final">0.0</span>
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-top: 20px;">
+            <button onclick="guardarPlanilla()" style="background: linear-gradient(135deg, #2b9348, #55a630); flex: 1; box-shadow: 0 4px 12px rgba(43, 147, 72, 0.3);">Guardar / Actualizar Planilla</button>
+            <button onclick="imprimirPlanillaActual()" style="background: linear-gradient(135deg, var(--secondary-accent), var(--accent-hover)); flex: 1;">Imprimir / Generar PDF</button>
+        </div>
+
+        <!-- SOLAPAS DE MESES GUARDADOS (VISTA USUARIO) -->
+        <div id="user-months-section" style="margin-top:25px; border-top: 1px solid var(--border-color); padding-top: 18px;">
+            <h4 style="margin: 0 0 10px 0; color: var(--accent-color); font-weight: 600;">Tus Planillas Guardadas por Mes:</h4>
+            <div id="user-months-tabs" class="tabs-container">
+                <span style="font-size: 0.85em; color: #64748b;">Cargando planillas...</span>
             </div>
-            <button class="btn-secondary" onclick="clearSignature()">Borrar / Limpiar Firma</button>
-        </div>
-        <p style="font-size: 0.75em; color: #888; margin: 5px 0;">O dibuja la firma abajo (mouse o pantalla táctil):</p>
-        <div class="signature-pad-container">
-            <canvas id="signature-pad"></canvas>
         </div>
     </div>
 
-    <button class="btn-main" onclick="window.print()">Imprimir Planilla</button>
-</div>
-
-<div id="printable-area">
-    <div class="p-header">
-        <span id="p-mes">MES: </span>
-        <span id="p-grado">GRADO: </span>
-        <span id="p-nombre">APELLIDO Y NOMBRE: </span>
-    </div>
-    <table id="p-table"></table>
-    <div class="p-footer">
-        <strong>CANTIDAD TOTAL HORAS DE ADICIONAL: <span id="p-total" style="border-bottom: 1px solid black; padding: 0 30px;">0.0</span></strong>
-        <p style="margin-top:10px;">*Se deberá completar todos los campos con la siguiente información:</p>
-        <p>G - Guardia | L/A, L/M - Licencia Anual, médica o cualquier otra licencia | C - Comisión | A - Adicional con horario | FRANCO.</p>
-        <div class="p-sigs">
-            <div class="p-sig-box-container">
-                <div class="p-sig-image-area">
-                    <img id="p-sig-img" src="" style="display: none;">
-                </div>
+    <!-- ÁREA DE IMPRESIÓN -->
+    <div id="printable-area">
+        <div class="p-header">
+            <span id="p-mes">MES: </span>
+            <span id="p-grado">GRADO: </span>
+            <span id="p-nombre">APELLIDO Y NOMBRE: </span>
+        </div>
+        <table id="p-table"></table>
+        <div class="p-footer">
+            <strong>CANTIDAD TOTAL HORAS DE ADICIONAL: <span id="p-total" style="border-bottom: 1px solid black; padding: 0 30px;">0.0</span></strong>
+            <p style="margin-top:10px;">*Se deberá completar todos los campos con la siguiente información:</p>
+            <p>G - Guardia | L/A, L/M - Licencia Anual, médica o cualquier otra licencia | C - Comisión | A - Adicional con horario | FRANCO.</p>
+            <div class="p-sigs">
                 <div class="p-sig-box">FIRMA SUBOFICIAL</div>
-            </div>
-            <div class="p-sig-box-container">
-                <div class="p-sig-image-area"></div>
                 <div class="p-sig-box">FIRMA Jefe de Serv.</div>
             </div>
         </div>
+        <div class="watermark">Powered by GabyMartin</div>
     </div>
-    <div class="watermark">Powered by GabyMartin</div>
-</div>
 
-<script>
-    const grid = document.getElementById('main-grid');
-    const optionsMap = {
-        "": "---",
-        "G": "Guardia",
-        "L/A": "Licencia Anual",
-        "L/M": "Licencia Médica",
-        "C": "Comisión",
-        "A": "Adicional",
-        "F": "Franco"
-    };
+    <!-- SCRIPT DE FIREBASE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, updateDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-    for (let i = 1; i <= 31; i++) {
-        const div = document.createElement('div');
-        div.className = 'day-card';
-        div.innerHTML = `
-            <span class="day-label">DÍA ${i}</span>
-            <select id="sel-${i}" onchange="handleTypeChange(${i}, this.value)">
-                ${Object.keys(optionsMap).map(key => `<option value="${key}">${optionsMap[key]}</option>`).join('')}
-            </select>
-            <div id="time-box-${i}" class="time-inputs">
-                <label>Inicio:</label>
-                <input type="time" id="start-${i}" onchange="calculateHours()">
-                <label>Fin:</label>
-                <input type="time" id="end-${i}" onchange="calculateHours()">
-            </div>
-        `;
-        grid.appendChild(div);
-    }
-
-    function handleTypeChange(dia, val) {
-        const timeBox = document.getElementById(`time-box-${dia}`);
-        timeBox.style.display = (val === 'A') ? 'flex' : 'none';
-        calculateHours();
-    }
-
-    function calculateHours() {
-        let totalGlobal = 0;
-        for (let i = 1; i <= 31; i++) {
-            const selectVal = document.getElementById(`sel-${i}`).value;
-            const start = document.getElementById(`start-${i}`).value;
-            const end = document.getElementById(`end-${i}`).value;
-            const pContent = document.getElementById(`p-content-${i}`);
-
-            let textForPrint = optionsMap[selectVal];
-            if (textForPrint === "---") textForPrint = "";
-
-            if (selectVal === 'A' && start && end) {
-                let s = start.split(':');
-                let e = end.split(':');
-                let startDate = new Date(0, 0, 0, s[0], s[1], 0);
-                let endDate = new Date(0, 0, 0, e[0], e[1], 0);
-                let diff = (endDate - startDate) / 1000 / 60 / 60;
-                if (diff < 0) diff += 24; 
-                
-                totalGlobal += diff;
-                textForPrint = `ADICIONAL (${start} a ${end})`;
-            }
-            
-            if(pContent) pContent.innerText = textForPrint;
-        }
-        document.getElementById('total-final').innerText = totalGlobal.toFixed(1);
-        document.getElementById('p-total').innerText = totalGlobal.toFixed(1);
-    }
-
-    const pTable = document.getElementById('p-table');
-    let dayAcc = 1;
-    for (let r = 0; r < 5; r++) {
-        let tr = document.createElement('tr');
-        for (let c = 0; c < 7; c++) {
-            let td = document.createElement('td');
-            if (dayAcc <= 31) {
-                td.innerHTML = `<span class="p-day-num">${dayAcc}</span><div class="p-day-content" id="p-content-${dayAcc}"></div>`;
-                dayAcc++;
-            }
-            tr.appendChild(td);
-        }
-        pTable.appendChild(tr);
-    }
-
-    document.getElementById('in-mes').oninput = e => document.getElementById('p-mes').innerText = "MES: " + e.target.value;
-    document.getElementById('in-grado').oninput = e => document.getElementById('p-grado').innerText = "GRADO: " + e.target.value;
-    document.getElementById('in-nombre').oninput = e => document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + e.target.value;
-
-    /* LÓGICA DE FIRMA DIGITAL (CANVAS + ARCHIVO) */
-    const canvas = document.getElementById('signature-pad');
-    const ctx = canvas.getContext('2d');
-    let isDrawing = false;
-    let hasSignature = false;
-
-    function resizeCanvas() {
-        const rect = canvas.getBoundingClientRect();
-        canvas.width = rect.width;
-        canvas.height = rect.height;
-        ctx.lineWidth = 2;
-        ctx.lineCap = 'round';
-        ctx.strokeStyle = '#000';
-    }
-
-    window.addEventListener('resize', resizeCanvas);
-    setTimeout(resizeCanvas, 100);
-
-    function getPos(e) {
-        const rect = canvas.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        return {
-            x: clientX - rect.left,
-            y: clientY - rect.top
+        const firebaseConfig = {
+            apiKey: "AIzaSyBH0YCZAjC4uvvlP0UJB9rbujOhgTLOXNw",
+            authDomain: "control-planillas-adicionales.firebaseapp.com",
+            projectId: "control-planillas-adicionales",
+            storageBucket: "control-planillas-adicionales.firebasestorage.app",
+            messagingSenderId: "486366456041",
+            appId: "1:486366456041:web:c4e59f91e10ffcc174a878"
         };
-    }
 
-    function startDrawing(e) {
-        isDrawing = true;
-        const pos = getPos(e);
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
-    }
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-    function draw(e) {
-        if (!isDrawing) return;
-        e.preventDefault();
-        const pos = getPos(e);
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
-        hasSignature = true;
-        updatePrintSignature();
-    }
+        window.firebaseAuth = {
+            auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, doc, setDoc, getDoc, updateDoc, updateProfile, onSnapshot, collection, getDocs, query, where, onAuthStateChanged
+        };
+    </script>
 
-    function stopDrawing() {
-        isDrawing = false;
-    }
+    <script>
+        let currentUserData = null;
+        let activeTargetUid = null;
+        let activeUserEmail = "";
 
-    canvas.addEventListener('mousedown', startDrawing);
-    canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', stopDrawing);
-    canvas.addEventListener('mouseleave', stopDrawing);
-
-    canvas.addEventListener('touchstart', startDrawing);
-    canvas.addEventListener('touchmove', draw);
-    canvas.addEventListener('touchend', stopDrawing);
-
-    function updatePrintSignature() {
-        const img = document.getElementById('p-sig-img');
-        if (hasSignature) {
-            img.src = canvas.toDataURL('image/png');
-            img.style.display = 'block';
+        window.toggleAuthMode = function(isRegister) {
+            document.getElementById('login-form').style.display = isRegister ? 'none' : 'block';
+            document.getElementById('register-form').style.display = isRegister ? 'block' : 'none';
         }
-    }
 
-    function loadSignatureImage(e) {
-        const file = e.target.files[0];
-        if (!file) return;
+        window.handleRegister = async function() {
+            const nombre = document.getElementById('reg-nombre').value;
+            const emailRaw = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const { auth, db, createUserWithEmailAndPassword, setDoc, doc, updateProfile } = window.firebaseAuth;
 
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            const img = new Image();
-            img.onload = function() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                hasSignature = true;
-                updatePrintSignature();
+            if(!nombre || !emailRaw || !password) {
+                alert("Por favor completa todos los campos.");
+                return;
             }
-            img.src = event.target.result;
+
+            const email = emailRaw.toLowerCase().trim();
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                await updateProfile(user, { displayName: nombre });
+
+                const isAdmin = (email === 'gabymartin267@gmail.com');
+
+                await setDoc(doc(db, "users", user.uid), {
+                    uid: user.uid,
+                    nombreCompleto: nombre,
+                    email: email,
+                    role: isAdmin ? "admin" : "user",
+                    status: isAdmin ? "approved" : "pending",
+                    createdAt: new Date()
+                });
+
+                if(isAdmin) {
+                    alert("¡Bienvenido Admin GabyMartin!");
+                } else {
+                    alert("Registro exitoso. Espera a que el administrador autorice tu acceso.");
+                }
+            } catch (error) {
+                alert("Error en el registro: " + error.message);
+            }
         }
-        reader.readAsDataURL(file);
-    }
 
-    function clearSignature() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        document.getElementById('sig-file').value = '';
-        const img = document.getElementById('p-sig-img');
-        img.src = '';
-        img.style.display = 'none';
-        hasSignature = false;
-    }
-</script>
+        window.handleLogin = async function() {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            const { auth, signInWithEmailAndPassword } = window.firebaseAuth;
 
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                alert("Error al iniciar sesión: Verifique sus datos o contraseña.");
+            }
+        }
+
+        window.cerrarSesion = function() {
+            const { auth, signOut } = window.firebaseAuth;
+            signOut(auth);
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const checkFirebaseInterval = setInterval(() => {
+                if (window.firebaseAuth) {
+                    clearInterval(checkFirebaseInterval);
+                    const { auth, db, doc, getDoc, updateDoc, onAuthStateChanged } = window.firebaseAuth;
+                    
+                    onAuthStateChanged(auth, async (user) => {
+                        const authContainer = document.getElementById('auth-container');
+                        const pendingContainer = document.getElementById('pending-container');
+                        const adminPanel = document.getElementById('admin-panel');
+                        const adminUsersView = document.getElementById('admin-users-view');
+                        const mainApp = document.getElementById('main-app');
+
+                        if (user) {
+                            const userDocRef = doc(db, "users", user.uid);
+                            const userSnap = await getDoc(userDocRef);
+
+                            if (userSnap.exists()) {
+                                currentUserData = userSnap.data();
+                                authContainer.style.display = 'none';
+
+                                const userEmail = currentUserData.email ? currentUserData.email.toLowerCase() : user.email.toLowerCase();
+
+                                if (userEmail === 'gabymartin267@gmail.com' && currentUserData.role !== 'admin') {
+                                    await updateDoc(userDocRef, { role: 'admin', status: 'approved' });
+                                    currentUserData.role = 'admin';
+                                    currentUserData.status = 'approved';
+                                }
+
+                                if (currentUserData.role === 'admin') {
+                                    adminPanel.style.display = 'block';
+                                    adminUsersView.style.display = 'block';
+                                    mainApp.style.display = 'block';
+                                    document.getElementById('user-display-info').innerText = `Admin: ${currentUserData.nombreCompleto || 'GabyMartin'}`;
+                                    document.getElementById('user-months-section').style.display = 'none';
+                                    
+                                    activeTargetUid = user.uid;
+                                    activeUserEmail = userEmail;
+                                    escucharSolicitudesPendientes();
+                                    cargarUsuariosAdminTabs();
+                                } else if (currentUserData.status === 'approved') {
+                                    pendingContainer.style.display = 'none';
+                                    adminPanel.style.display = 'none';
+                                    adminUsersView.style.display = 'none';
+                                    mainApp.style.display = 'block';
+                                    document.getElementById('user-months-section').style.display = 'block';
+                                    document.getElementById('user-display-info').innerText = `Usuario: ${currentUserData.nombreCompleto}`;
+                                    
+                                    activeTargetUid = user.uid;
+                                    activeUserEmail = userEmail;
+                                    document.getElementById('in-nombre').value = currentUserData.nombreCompleto;
+                                    document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + currentUserData.nombreCompleto;
+                                    
+                                    cargarSolapasMesesUsuario(user.uid, userEmail);
+                                } else {
+                                    pendingContainer.style.display = 'block';
+                                    adminPanel.style.display = 'none';
+                                    adminUsersView.style.display = 'none';
+                                    mainApp.style.display = 'none';
+                                }
+                            }
+                        } else {
+                            authContainer.style.display = 'block';
+                            pendingContainer.style.display = 'none';
+                            adminPanel.style.display = 'none';
+                            adminUsersView.style.display = 'none';
+                            mainApp.style.display = 'none';
+                        }
+                    });
+                }
+            }, 200);
+        });
+
+        function escucharSolicitudesPendientes() {
+            const { db, collection, onSnapshot } = window.firebaseAuth;
+            const listContainer = document.getElementById('admin-requests-list');
+
+            onSnapshot(collection(db, "users"), (snapshot) => {
+                let html = "";
+                const emailsVistos = new Set();
+
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const mailNorm = data.email ? data.email.toLowerCase() : '';
+                    if (data.status === 'pending' && !emailsVistos.has(mailNorm)) {
+                        emailsVistos.add(mailNorm);
+                        html += `
+                            <div style="background: var(--input-bg); padding:12px; margin-bottom:8px; border-radius:6px; border:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+                                <span><b>${data.nombreCompleto}</b> (${data.email})</span>
+                                <button onclick="aprobarUsuario('${data.uid}')" style="width:auto; padding:6px 14px; margin:0; background:linear-gradient(135deg, #2b9348, #55a630);">Autorizar</button>
+                            </div>
+                        `;
+                    }
+                });
+                listContainer.innerHTML = html || "<p style='color:#94a3b8;'>No hay solicitudes pendientes en este momento.</p>";
+            });
+        }
+
+        window.aprobarUsuario = async function(uid) {
+            const { db, doc, updateDoc } = window.firebaseAuth;
+            try {
+                await updateDoc(doc(db, "users", uid), { status: "approved" });
+                alert("Usuario autorizado correctamente.");
+                cargarUsuariosAdminTabs();
+            } catch (error) {
+                alert("Error al autorizar: " + error.message);
+            }
+        }
+
+        async function cargarUsuariosAdminTabs() {
+            const { db, collection, getDocs } = window.firebaseAuth;
+            const container = document.getElementById('admin-users-tabs');
+            const snapshot = await getDocs(collection(db, "users"));
+
+            let html = "";
+            const emailsAgregados = new Set();
+
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                const mailNorm = data.email ? data.email.toLowerCase() : '';
+
+                if(data.status === 'approved' && !emailsAgregados.has(mailNorm)) {
+                    emailsAgregados.add(mailNorm);
+                    const safeEmailId = mailNorm.replace(/[^a-zA-Z0-9]/g, '_');
+                    html += `<button class="tab-btn admin-user-tab" id="btn-user-${safeEmailId}" onclick="seleccionarUsuarioAdmin('${data.uid}', '${mailNorm}', '${safeEmailId}')">${data.nombreCompleto}</button>`;
+                }
+            });
+            container.innerHTML = html || "<span style='color:#64748b;'>No hay usuarios autorizados.</span>";
+        }
+
+        window.seleccionarUsuarioAdmin = function(uid, email, safeEmailId) {
+            document.querySelectorAll('.admin-user-tab').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`btn-user-${safeEmailId}`);
+            if(activeBtn) activeBtn.classList.add('active');
+
+            activeTargetUid = uid;
+            activeUserEmail = email;
+            cargarSolapasMesesAdmin(uid, email);
+        }
+
+        async function cargarSolapasMesesAdmin(uid, email) {
+            const { db, collection, getDocs } = window.firebaseAuth;
+            const container = document.getElementById('admin-months-tabs');
+
+            const snapshot = await getDocs(collection(db, "planillas"));
+            let planillasEncontradas = [];
+
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                if (data.userEmail === email || data.uid === uid) {
+                    planillasEncontradas.push({ id: docSnap.id, ...data });
+                }
+            });
+
+            if(planillasEncontradas.length === 0) {
+                container.innerHTML = "<span style='font-size:0.85em; color:#64748b;'>Este usuario no tiene planillas guardadas aún.</span>";
+                limpiarFormulario();
+                return;
+            }
+
+            let html = "";
+            planillasEncontradas.forEach((pData) => {
+                const mesNombre = pData.mes || pData.mesKey || "Sin Mes";
+                html += `<button class="tab-btn admin-month-tab" id="btn-admin-m-${pData.id}" onclick="cargarMesEspecificoPorId('${pData.id}', 'admin')">${mesNombre}</button>`;
+            });
+
+            container.innerHTML = html;
+            cargarMesEspecificoPorId(planillasEncontradas[0].id, 'admin');
+        }
+
+        async function cargarSolapasMesesUsuario(uid, email) {
+            const { db, collection, onSnapshot } = window.firebaseAuth;
+            const container = document.getElementById('user-months-tabs');
+
+            onSnapshot(collection(db, "planillas"), (snapshot) => {
+                let planillasEncontradas = [];
+
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    if (data.userEmail === email || data.uid === uid) {
+                        planillasEncontradas.push({ id: docSnap.id, ...data });
+                    }
+                });
+
+                if(planillasEncontradas.length === 0) {
+                    container.innerHTML = "<span style='font-size:0.85em; color:#64748b;'>No tienes planillas guardadas aún. Completa el formulario y presiona 'Guardar'.</span>";
+                    return;
+                }
+
+                let html = "";
+                planillasEncontradas.forEach((pData) => {
+                    const mesNombre = pData.mes || pData.mesKey || "Sin Mes";
+                    html += `<button class="tab-btn user-month-tab" id="btn-user-m-${pData.id}" onclick="cargarMesEspecificoPorId('${pData.id}', 'user')">${mesNombre}</button>`;
+                });
+
+                container.innerHTML = html;
+            });
+        }
+
+        async function cargarMesEspecificoPorId(docId, context) {
+            const { db, doc, getDoc } = window.firebaseAuth;
+
+            const planSnap = await getDoc(doc(db, "planillas", docId));
+            if(planSnap.exists()) {
+                const pData = planSnap.data();
+
+                const tabClass = context === 'admin' ? '.admin-month-tab' : '.user-month-tab';
+                document.querySelectorAll(tabClass).forEach(btn => btn.classList.remove('active'));
+                const btnActivo = document.getElementById(context === 'admin' ? `btn-admin-m-${docId}` : `btn-user-m-${docId}`);
+                if(btnActivo) btnActivo.classList.add('active');
+
+                document.getElementById('in-mes').value = pData.mes || '';
+                document.getElementById('p-mes').innerText = "MES: " + (pData.mes || '');
+                
+                document.getElementById('in-grado').value = pData.grado || '';
+                document.getElementById('p-grado').innerText = "GRADO: " + (pData.grado || '');
+
+                document.getElementById('in-nombre').value = pData.nombre || '';
+                document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + (pData.nombre || '');
+
+                limpiarChecksYTiempos();
+
+                if(pData.dias) {
+                    for(let i = 1; i <= 31; i++) {
+                        const dayInfo = pData.dias[i];
+                        if(dayInfo) {
+                            if(dayInfo.checked) {
+                                dayInfo.checked.forEach(val => {
+                                    const cb = document.querySelector(`.chk-day-${i}[value="${val}"]`);
+                                    if(cb) cb.checked = true;
+                                });
+                            }
+                            if(dayInfo.start) document.getElementById(`start-${i}`).value = dayInfo.start;
+                            if(dayInfo.end) document.getElementById(`end-${i}`).value = dayInfo.end;
+                            
+                            window.handleOptionChange(i);
+                        }
+                    }
+                }
+                calculateHours();
+            }
+        }
+
+        function limpiarFormulario() {
+            document.getElementById('in-mes').value = '';
+            document.getElementById('in-grado').value = '';
+            limpiarChecksYTiempos();
+            calculateHours();
+        }
+
+        function limpiarChecksYTiempos() {
+            for(let i = 1; i <= 31; i++) {
+                document.querySelectorAll(`.chk-day-${i}`).forEach(cb => cb.checked = false);
+                document.getElementById(`start-${i}`).value = '';
+                document.getElementById(`end-${i}`).value = '';
+                document.getElementById(`time-box-${i}`).style.display = 'none';
+            }
+        }
+
+        const grid = document.getElementById('main-grid');
+        const optionsMap = {
+            "G": "Guardia",
+            "L/A": "Licencia Anual",
+            "L/M": "Licencia Médica",
+            "C": "Comisión",
+            "A": "Adicional",
+            "F": "Franco"
+        };
+
+        for (let i = 1; i <= 31; i++) {
+            const div = document.createElement('div');
+            div.className = 'day-card';
+            
+            let optionsHTML = '';
+            Object.keys(optionsMap).forEach(key => {
+                optionsHTML += `
+                    <label>
+                        <input type="checkbox" class="chk-day-${i}" value="${key}" onchange="handleOptionChange(${i})">
+                        ${optionsMap[key]}
+                    </label>
+                `;
+            });
+
+            div.innerHTML = `
+                <span class="day-label">DÍA ${i}</span>
+                <div class="checkbox-group">
+                    ${optionsHTML}
+                </div>
+                <div id="time-box-${i}" class="time-inputs">
+                    <label>Inicio:</label>
+                    <input type="time" id="start-${i}" onchange="calculateHours()">
+                    <label>Fin:</label>
+                    <input type="time" id="end-${i}" onchange="calculateHours()">
+                </div>
+            `;
+            grid.appendChild(div);
+        }
+
+        window.handleOptionChange = function(dia) {
+            const checkboxes = document.querySelectorAll(`.chk-day-${dia}:checked`);
+            let hasAdicional = false;
+            
+            checkboxes.forEach(chk => {
+                if (chk.value === 'A') hasAdicional = true;
+            });
+
+            const timeBox = document.getElementById(`time-box-${dia}`);
+            timeBox.style.display = hasAdicional ? 'flex' : 'none';
+
+            calculateHours();
+        }
+
+        window.calculateHours = function() {
+            let totalGlobal = 0;
+
+            for (let i = 1; i <= 31; i++) {
+                const checkedBoxes = document.querySelectorAll(`.chk-day-${i}:checked`);
+                const start = document.getElementById(`start-${i}`).value;
+                const end = document.getElementById(`end-${i}`).value;
+                const pContent = document.getElementById(`p-content-${i}`);
+
+                let dayTexts = [];
+
+                checkedBoxes.forEach(chk => {
+                    const val = chk.value;
+
+                    if (val === 'A') {
+                        if (start && end) {
+                            let s = start.split(':');
+                            let e = end.split(':');
+                            let startDate = new Date(0, 0, 0, s[0], s[1], 0);
+                            let endDate = new Date(0, 0, 0, e[0], e[1], 0);
+                            let diff = (endDate - startDate) / 1000 / 60 / 60;
+                            if (diff < 0) diff += 24; 
+                            
+                            totalGlobal += diff;
+                            dayTexts.push(`ADICIONAL (${start} a ${end})`);
+                        } else {
+                            dayTexts.push(`ADICIONAL`);
+                        }
+                    } else {
+                        dayTexts.push(optionsMap[val]);
+                    }
+                });
+                
+                if (pContent) {
+                    pContent.innerHTML = dayTexts.join('<br>');
+                }
+            }
+
+            document.getElementById('total-final').innerText = totalGlobal.toFixed(1);
+            document.getElementById('p-total').innerText = totalGlobal.toFixed(1);
+        }
+
+        window.guardarPlanilla = async function() {
+            if(!activeUserEmail && !activeTargetUid) return;
+            const { db, doc, setDoc } = window.firebaseAuth;
+
+            const mesRaw = document.getElementById('in-mes').value.trim();
+            if(!mesRaw) {
+                alert("Por favor ingresa el MES de la planilla antes de guardar.");
+                return;
+            }
+
+            const mesKey = mesRaw.toUpperCase().replace(/\s+/g, '_');
+            const safeEmailId = (activeUserEmail || activeTargetUid).replace(/[^a-zA-Z0-9]/g, '_');
+            const docId = `${safeEmailId}_${mesKey}`;
+
+            const grado = document.getElementById('in-grado').value;
+            const nombre = document.getElementById('in-nombre').value;
+
+            let diasData = {};
+            for(let i = 1; i <= 31; i++) {
+                const checked = Array.from(document.querySelectorAll(`.chk-day-${i}:checked`)).map(cb => cb.value);
+                const start = document.getElementById(`start-${i}`).value;
+                const end = document.getElementById(`end-${i}`).value;
+                
+                diasData[i] = { checked, start, end };
+            }
+
+            try {
+                await setDoc(doc(db, "planillas", docId), {
+                    docId: docId,
+                    uid: activeTargetUid,
+                    userEmail: activeUserEmail,
+                    mes: mesRaw.toUpperCase(),
+                    mesKey: mesKey,
+                    grado,
+                    nombre,
+                    dias: diasData,
+                    ultimaActualizacion: new Date()
+                }, { merge: true });
+
+                alert(`¡Planilla correspondiente a ${mesRaw.toUpperCase()} guardada exitosamente!`);
+                
+                if(currentUserData.role === 'admin') {
+                    cargarSolapasMesesAdmin(activeTargetUid, activeUserEmail);
+                } else {
+                    cargarSolapasMesesUsuario(activeTargetUid, activeUserEmail);
+                }
+            } catch (error) {
+                alert("Error al guardar la planilla: " + error.message);
+            }
+        }
+
+        window.imprimirPlanillaActual = function() {
+            document.getElementById('p-mes').innerText = "MES: " + document.getElementById('in-mes').value;
+            document.getElementById('p-grado').innerText = "GRADO: " + document.getElementById('in-grado').value;
+            document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + document.getElementById('in-nombre').value;
+            window.print();
+        }
+
+        const pTable = document.getElementById('p-table');
+        let dayAcc = 1;
+        for (let r = 0; r < 5; r++) {
+            let tr = document.createElement('tr');
+            for (let c = 0; c < 7; c++) {
+                let td = document.createElement('td');
+                if (dayAcc <= 31) {
+                    td.innerHTML = `<span class="p-day-num">${dayAcc}</span><div class="p-day-content" id="p-content-${dayAcc}"></div>`;
+                    dayAcc++;
+                }
+                tr.appendChild(td);
+            }
+            pTable.appendChild(tr);
+        }
+
+        document.getElementById('in-mes').oninput = e => document.getElementById('p-mes').innerText = "MES: " + e.target.value;
+        document.getElementById('in-grado').oninput = e => document.getElementById('p-grado').innerText = "GRADO: " + e.target.value;
+        document.getElementById('in-nombre').oninput = e => document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + e.target.value;
+    </script>
 </body>
 </html>
