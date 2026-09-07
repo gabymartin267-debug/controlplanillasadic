@@ -172,65 +172,6 @@
             text-shadow: 0 0 10px rgba(0, 210, 255, 0.4);
         }
 
-        /* SECCIÓN DE FIRMA DIGITAL */
-        .signature-section {
-            margin-top: 25px;
-            padding: 18px;
-            border: 1px solid var(--border-color);
-            background: rgba(11, 19, 43, 0.4);
-            border-radius: 8px;
-        }
-
-        .signature-section h4 {
-            margin-top: 0;
-            margin-bottom: 12px;
-            color: var(--accent-color);
-        }
-
-        .signature-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            align-items: center;
-        }
-
-        #sig-canvas {
-            background-color: #ffffff;
-            border: 2px dashed var(--accent-color);
-            border-radius: 6px;
-            cursor: crosshair;
-            touch-action: none;
-            width: 100%;
-            max-width: 400px;
-            height: 150px;
-        }
-
-        .sig-controls {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-            width: 100%;
-        }
-
-        .sig-btn {
-            background: var(--input-bg);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-size: 0.85em;
-            cursor: pointer;
-            width: auto;
-            margin-top: 0;
-            box-shadow: none;
-        }
-
-        .sig-btn:hover {
-            border-color: var(--accent-color);
-            color: #ffffff;
-        }
-
         button {
             margin-top: 20px;
             width: 100%;
@@ -328,23 +269,7 @@
             .p-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 15px; }
             .p-footer { margin-top: 20px; font-size: 11px; }
             .p-sigs { display: flex; justify-content: flex-end; gap: 50px; margin-top: 50px; }
-            .p-sig-box { 
-                border-top: 1px solid black; 
-                width: 200px; 
-                text-align: center; 
-                padding-top: 5px; 
-                position: relative;
-            }
-            .p-sig-img {
-                position: absolute;
-                bottom: 20px;
-                left: 50%;
-                transform: translateX(-50%);
-                max-width: 180px;
-                max-height: 60px;
-                object-fit: contain;
-                display: none;
-            }
+            .p-sig-box { border-top: 1px solid black; width: 200px; text-align: center; padding-top: 5px; }
             .watermark { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: black; font-weight: bold; }
         }
     </style>
@@ -420,19 +345,6 @@
             <span id="total-final">0.0</span>
         </div>
 
-        <!-- RECUADRO DE FIRMA DIGITAL -->
-        <div class="signature-section">
-            <h4>Firma Suboficial</h4>
-            <div class="signature-container">
-                <canvas id="sig-canvas" width="400" height="150"></canvas>
-                <div class="sig-controls">
-                    <button class="sig-btn" onclick="limpiarFirma()">Limpiar Trazo</button>
-                    <button class="sig-btn" onclick="document.getElementById('sig-file-input').click()">Subir Imagen</button>
-                    <input type="file" id="sig-file-input" accept="image/*" style="display:none;" onchange="cargarImagenFirma(event)">
-                </div>
-            </div>
-        </div>
-
         <div style="display: flex; gap: 12px; margin-top: 20px;">
             <button onclick="guardarPlanilla()" style="background: linear-gradient(135deg, #2b9348, #55a630); flex: 1; box-shadow: 0 4px 12px rgba(43, 147, 72, 0.3);">Guardar / Actualizar Planilla</button>
             <button onclick="imprimirPlanillaActual()" style="background: linear-gradient(135deg, var(--secondary-accent), var(--accent-hover)); flex: 1;">Imprimir / Generar PDF</button>
@@ -460,10 +372,7 @@
             <p style="margin-top:10px;">*Se deberá completar todos los campos con la siguiente información:</p>
             <p>G - Guardia | L/A, L/M - Licencia Anual, médica o cualquier otra licencia | C - Comisión | A - Adicional con horario | FRANCO.</p>
             <div class="p-sigs">
-                <div class="p-sig-box">
-                    <img id="p-sig-suboficial" class="p-sig-img" alt="Firma Suboficial">
-                    FIRMA SUBOFICIAL
-                </div>
+                <div class="p-sig-box">FIRMA SUBOFICIAL</div>
                 <div class="p-sig-box">FIRMA Jefe de Serv.</div>
             </div>
         </div>
@@ -498,124 +407,6 @@
         let currentUserData = null;
         let activeTargetUid = null;
         let activeUserEmail = "";
-
-        // LÓGICA DEL CANVAS DE FIRMA DIGITAL
-        let canvas, ctx, isDrawing = false;
-        let currentSignatureData = "";
-
-        function initSignatureCanvas() {
-            canvas = document.getElementById('sig-canvas');
-            ctx = canvas.getContext('2d');
-
-            ctx.strokeStyle = "#000000";
-            ctx.lineWidth = 2;
-            ctx.lineCap = "round";
-
-            // Eventos Táctiles (Pantallas de Móviles/Tablets)
-            canvas.addEventListener('touchstart', (e) => {
-                isDrawing = true;
-                const pos = getPos(e);
-                ctx.beginPath();
-                ctx.moveTo(pos.x, pos.y);
-                e.preventDefault();
-            });
-
-            canvas.addEventListener('touchmove', (e) => {
-                if (!isDrawing) return;
-                const pos = getPos(e);
-                ctx.lineTo(pos.x, pos.y);
-                ctx.stroke();
-                e.preventDefault();
-            });
-
-            canvas.addEventListener('touchend', () => {
-                if (isDrawing) {
-                    isDrawing = false;
-                    saveCanvasData();
-                }
-            });
-
-            // Eventos de Mouse (Computadora)
-            canvas.addEventListener('mousedown', (e) => {
-                isDrawing = true;
-                const pos = getPos(e);
-                ctx.beginPath();
-                ctx.moveTo(pos.x, pos.y);
-            });
-
-            canvas.addEventListener('mousemove', (e) => {
-                if (!isDrawing) return;
-                const pos = getPos(e);
-                ctx.lineTo(pos.x, pos.y);
-                ctx.stroke();
-            });
-
-            canvas.addEventListener('mouseup', () => {
-                if (isDrawing) {
-                    isDrawing = false;
-                    saveCanvasData();
-                }
-            });
-
-            canvas.addEventListener('mouseleave', () => {
-                if (isDrawing) {
-                    isDrawing = false;
-                    saveCanvasData();
-                }
-            });
-        }
-
-        function getPos(evt) {
-            const rect = canvas.getBoundingClientRect();
-            let clientX = evt.clientX;
-            let clientY = evt.clientY;
-
-            if (evt.touches && evt.touches.length > 0) {
-                clientX = evt.touches[0].clientX;
-                clientY = evt.touches[0].clientY;
-            }
-
-            return {
-                x: (clientX - rect.left) * (canvas.width / rect.width),
-                y: (clientY - rect.top) * (canvas.height / rect.height)
-            };
-        }
-
-        function saveCanvasData() {
-            currentSignatureData = canvas.toDataURL('image/png');
-        }
-
-        window.limpiarFirma = function() {
-            if (!ctx) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            currentSignatureData = "";
-            document.getElementById('sig-file-input').value = "";
-        }
-
-        window.cargarImagenFirma = function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    
-                    // Escalar imagen proporcionalmente dentro del lienzo
-                    const hRatio = canvas.width / img.width;
-                    const vRatio = canvas.height / img.height;
-                    const ratio = Math.min(hRatio, vRatio);
-                    const centerShiftX = (canvas.width - img.width * ratio) / 2;
-                    const centerShiftY = (canvas.height - img.height * ratio) / 2;
-
-                    ctx.drawImage(img, 0, 0, img.width, img.height, centerShiftX, centerShiftY, img.width * ratio, img.height * ratio);
-                    saveCanvasData();
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
 
         window.toggleAuthMode = function(isRegister) {
             document.getElementById('login-form').style.display = isRegister ? 'none' : 'block';
@@ -680,8 +471,6 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            initSignatureCanvas();
-
             const checkFirebaseInterval = setInterval(() => {
                 if (window.firebaseAuth) {
                     clearInterval(checkFirebaseInterval);
@@ -920,18 +709,6 @@
                         }
                     }
                 }
-
-                // Cargar firma si fue previamente guardada
-                limpiarFirma();
-                if (pData.firma) {
-                    currentSignatureData = pData.firma;
-                    const img = new Image();
-                    img.onload = function() {
-                        ctx.drawImage(img, 0, 0);
-                    };
-                    img.src = pData.firma;
-                }
-
                 calculateHours();
             }
         }
@@ -940,7 +717,6 @@
             document.getElementById('in-mes').value = '';
             document.getElementById('in-grado').value = '';
             limpiarChecksYTiempos();
-            limpiarFirma();
             calculateHours();
         }
 
@@ -1084,7 +860,6 @@
                     grado,
                     nombre,
                     dias: diasData,
-                    firma: currentSignatureData,
                     ultimaActualizacion: new Date()
                 }, { merge: true });
 
@@ -1104,16 +879,6 @@
             document.getElementById('p-mes').innerText = "MES: " + document.getElementById('in-mes').value;
             document.getElementById('p-grado').innerText = "GRADO: " + document.getElementById('in-grado').value;
             document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + document.getElementById('in-nombre').value;
-
-            // Actualizar la firma en la vista de impresión
-            const sigImg = document.getElementById('p-sig-suboficial');
-            if (currentSignatureData) {
-                sigImg.src = currentSignatureData;
-                sigImg.style.display = 'block';
-            } else {
-                sigImg.style.display = 'none';
-            }
-
             window.print();
         }
 
