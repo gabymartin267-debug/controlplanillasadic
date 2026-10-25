@@ -18,16 +18,15 @@
 
     <style>
         :root {
-            /* PALETA MODO OSCURO: AZUL MARINO A CELESTE */
-            --bg-color: #0b132b;          /* Azul Marino Muy Oscuro / Noche */
-            --card-bg: #1c2541;          /* Azul Marino Profundo para tarjetas */
-            --input-bg: #0b132b;         /* Fondo de inputs */
-            --text-color: #e0f2fe;        /* Celeste helado muy claro para texto */
-            --accent-color: #00d2ff;      /* Celeste Neón / Cyan brillante */
-            --accent-hover: #00a8e8;      /* Celeste Intenso hover */
-            --secondary-accent: #3a86ff; /* Azul Cobalto / Eléctrico */
-            --border-color: #2a3a5e;     /* Borde azulado sutil */
-            --admin-accent: #38ef7d;     /* Verde de confirmación/admin */
+            --bg-color: #0b132b;          
+            --card-bg: #1c2541;          
+            --input-bg: #0b132b;         
+            --text-color: #e0f2fe;        
+            --accent-color: #00d2ff;      
+            --accent-hover: #00a8e8;      
+            --secondary-accent: #3a86ff; 
+            --border-color: #2a3a5e;     
+            --admin-accent: #38ef7d;     
         }
 
         body {
@@ -145,6 +144,11 @@
             accent-color: var(--accent-color);
             width: 15px;
             height: 15px;
+        }
+
+        .other-input-box {
+            margin-top: 6px;
+            display: none;
         }
 
         .time-inputs {
@@ -351,6 +355,7 @@
 
         <div style="display: flex; gap: 12px; margin-top: 20px;">
             <button onclick="guardarPlanilla()" style="background: linear-gradient(135deg, #2b9348, #55a630); flex: 1; box-shadow: 0 4px 12px rgba(43, 147, 72, 0.3);">Guardar / Actualizar Planilla</button>
+            <button onclick="limpiarPlanillaActual()" style="background: linear-gradient(135deg, #e63946, #d62828); flex: 1; box-shadow: 0 4px 12px rgba(230, 57, 70, 0.3);">Limpiar Planilla</button>
             <button onclick="imprimirPlanillaActual()" style="background: linear-gradient(135deg, var(--secondary-accent), var(--accent-hover)); flex: 1;">Imprimir / Generar PDF</button>
         </div>
 
@@ -514,6 +519,7 @@
                                     activeUserEmail = userEmail;
                                     escucharSolicitudesPendientes();
                                     cargarUsuariosAdminTabs();
+                                    limpiarFormularioCompleto(); // Inicia siempre en blanco al entrar
                                 } else if (currentUserData.status === 'approved') {
                                     pendingContainer.style.display = 'none';
                                     adminPanel.style.display = 'none';
@@ -524,10 +530,11 @@
                                     
                                     activeTargetUid = user.uid;
                                     activeUserEmail = userEmail;
-                                    document.getElementById('in-nombre').value = currentUserData.nombreCompleto;
-                                    document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + currentUserData.nombreCompleto;
                                     
                                     cargarSolapasMesesUsuario(user.uid, userEmail);
+                                    limpiarFormularioCompleto(); // Inicia siempre en blanco al entrar
+                                    document.getElementById('in-nombre').value = currentUserData.nombreCompleto;
+                                    document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + currentUserData.nombreCompleto;
                                 } else {
                                     pendingContainer.style.display = 'block';
                                     adminPanel.style.display = 'none';
@@ -630,7 +637,7 @@
 
             if(planillasEncontradas.length === 0) {
                 container.innerHTML = "<span style='font-size:0.85em; color:#64748b;'>Este usuario no tiene planillas guardadas aún.</span>";
-                limpiarFormulario();
+                limpiarFormularioCompleto();
                 return;
             }
 
@@ -641,7 +648,6 @@
             });
 
             container.innerHTML = html;
-            cargarMesEspecificoPorId(planillasEncontradas[0].id, 'admin');
         }
 
         async function cargarSolapasMesesUsuario(uid, email) {
@@ -706,6 +712,12 @@
                                     if(cb) cb.checked = true;
                                 });
                             }
+                            if(dayInfo.otherText) {
+                                const otherCb = document.querySelector(`.chk-day-${i}[value="O"]`);
+                                if(otherCb) otherCb.checked = true;
+                                const otherInput = document.getElementById(`other-input-${i}`);
+                                if(otherInput) otherInput.value = dayInfo.otherText;
+                            }
                             if(dayInfo.start) document.getElementById(`start-${i}`).value = dayInfo.start;
                             if(dayInfo.end) document.getElementById(`end-${i}`).value = dayInfo.end;
                             
@@ -717,19 +729,45 @@
             }
         }
 
-        function limpiarFormulario() {
+        function limpiarFormularioCompleto() {
             document.getElementById('in-mes').value = '';
+            document.getElementById('p-mes').innerText = "MES: ";
             document.getElementById('in-grado').value = '';
+            document.getElementById('p-grado').innerText = "GRADO: ";
+            if(currentUserData && currentUserData.role !== 'admin') {
+                document.getElementById('in-nombre').value = currentUserData.nombreCompleto || '';
+                document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: " + (currentUserData.nombreCompleto || '');
+            } else {
+                document.getElementById('in-nombre').value = '';
+                document.getElementById('p-nombre').innerText = "APELLIDO Y NOMBRE: ";
+            }
             limpiarChecksYTiempos();
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             calculateHours();
+        }
+
+        window.limpiarPlanillaActual = function() {
+            if(confirm("¿Estás seguro de limpiar todos los datos de la planilla actual?")) {
+                limpiarFormularioCompleto();
+            }
         }
 
         function limpiarChecksYTiempos() {
             for(let i = 1; i <= 31; i++) {
                 document.querySelectorAll(`.chk-day-${i}`).forEach(cb => cb.checked = false);
-                document.getElementById(`start-${i}`).value = '';
-                document.getElementById(`end-${i}`).value = '';
-                document.getElementById(`time-box-${i}`).style.display = 'none';
+                const otherInput = document.getElementById(`other-input-${i}`);
+                if(otherInput) {
+                    otherInput.value = '';
+                }
+                const otherBox = document.getElementById(`other-box-${i}`);
+                if(otherBox) otherBox.style.display = 'none';
+
+                const startInput = document.getElementById(`start-${i}`);
+                const endInput = document.getElementById(`end-${i}`);
+                if(startInput) startInput.value = '';
+                if(endInput) endInput.value = '';
+                const timeBox = document.getElementById(`time-box-${i}`);
+                if(timeBox) timeBox.style.display = 'none';
             }
         }
 
@@ -740,7 +778,8 @@
             "L/M": "Licencia Médica",
             "C": "Comisión",
             "A": "Adicional",
-            "F": "Franco"
+            "F": "Franco",
+            "O": "Otros"
         };
 
         for (let i = 1; i <= 31; i++) {
@@ -762,6 +801,9 @@
                 <div class="checkbox-group">
                     ${optionsHTML}
                 </div>
+                <div id="other-box-${i}" class="other-input-box">
+                    <input type="text" id="other-input-${i}" placeholder="Especifique otro..." oninput="calculateHours()" style="font-size:0.8em; padding:6px;">
+                </div>
                 <div id="time-box-${i}" class="time-inputs">
                     <label>Inicio:</label>
                     <input type="time" id="start-${i}" onchange="calculateHours()">
@@ -775,13 +817,18 @@
         window.handleOptionChange = function(dia) {
             const checkboxes = document.querySelectorAll(`.chk-day-${dia}:checked`);
             let hasAdicional = false;
+            let hasOther = false;
             
             checkboxes.forEach(chk => {
                 if (chk.value === 'A') hasAdicional = true;
+                if (chk.value === 'O') hasOther = true;
             });
 
             const timeBox = document.getElementById(`time-box-${dia}`);
             timeBox.style.display = hasAdicional ? 'flex' : 'none';
+
+            const otherBox = document.getElementById(`other-box-${dia}`);
+            otherBox.style.display = hasOther ? 'block' : 'none';
 
             calculateHours();
         }
@@ -794,6 +841,7 @@
                 const start = document.getElementById(`start-${i}`).value;
                 const end = document.getElementById(`end-${i}`).value;
                 const pContent = document.getElementById(`p-content-${i}`);
+                const otherInputVal = document.getElementById(`other-input-${i}`) ? document.getElementById(`other-input-${i}`).value.trim() : '';
 
                 let dayTexts = [];
 
@@ -814,6 +862,8 @@
                         } else {
                             dayTexts.push(`ADICIONAL`);
                         }
+                    } else if (val === 'O') {
+                        dayTexts.push(otherInputVal ? otherInputVal.toUpperCase() : ' OTROS');
                     } else {
                         dayTexts.push(optionsMap[val]);
                     }
@@ -830,6 +880,12 @@
 
         window.guardarPlanilla = async function() {
             if(!activeUserEmail && !activeTargetUid) return;
+
+            // Ventana de confirmación requerida
+            if(!confirm("¿Deseas confirmar el guardado o actualización de esta planilla?")) {
+                return;
+            }
+
             const { db, doc, setDoc } = window.firebaseAuth;
 
             const mesRaw = document.getElementById('in-mes').value.trim();
@@ -844,14 +900,16 @@
 
             const grado = document.getElementById('in-grado').value;
             const nombre = document.getElementById('in-nombre').value;
+            const creadorPlanilla = currentUserData ? currentUserData.nombreCompleto : "Desconocido";
 
             let diasData = {};
             for(let i = 1; i <= 31; i++) {
                 const checked = Array.from(document.querySelectorAll(`.chk-day-${i}:checked`)).map(cb => cb.value);
                 const start = document.getElementById(`start-${i}`).value;
                 const end = document.getElementById(`end-${i}`).value;
+                const otherInput = document.getElementById(`other-input-${i}`) ? document.getElementById(`other-input-${i}`).value : '';
                 
-                diasData[i] = { checked, start, end };
+                diasData[i] = { checked, start, end, otherText: otherInput };
             }
 
             try {
@@ -863,6 +921,7 @@
                     mesKey: mesKey,
                     grado,
                     nombre,
+                    creadorPlanilla: creadorPlanilla, // Guarda el nombre del personal creador
                     dias: diasData,
                     ultimaActualizacion: new Date()
                 }, { merge: true });
